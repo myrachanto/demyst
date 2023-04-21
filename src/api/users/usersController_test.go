@@ -14,7 +14,7 @@ var (
 	// jsondata1 = `{"email":   "email1@example.com","password": "1234567"}`
 )
 
-//make end to end testing
+// make end to end testing
 func TestCreateUser(t *testing.T) {
 	user := &User{}
 	if err := json.Unmarshal([]byte(jsondatas), &user); err != nil {
@@ -30,25 +30,25 @@ func TestCreateUser(t *testing.T) {
 
 // func TestLoginUser(t *testing.T) {
 
-// 	user1 := &User{}
-// 	if err := json.Unmarshal([]byte(jsondata), &user1); err != nil {
-// 		t.Errorf("failed to unmarshal user data %v", err.Error())
-// 	}
-// 	_, _ = UserService.Create(user1)
-// 	user := &LoginUser{}
-// 	if err := json.Unmarshal([]byte(jsondata1), &user); err != nil {
-// 		t.Errorf("failed to unmarshal user data %v", err.Error())
-// 	}
-// 	res, err := UserService.Login(user)
-// 	// expected := "user created successifully"
-// 	if res.Token == "" {
-// 		assert.EqualValues(t, "", res, "Something went wrong testing with the Logging method")
-// 		assert.NotNil(t, err, "Something went wrong testing with the Logging method")
-// 	}
-// 	// afterparty cleaner
-// 	//use uname to clean after testing
-// 	UserService.Delete(res.Usercode)
-// }
+//		user1 := &User{}
+//		if err := json.Unmarshal([]byte(jsondata), &user1); err != nil {
+//			t.Errorf("failed to unmarshal user data %v", err.Error())
+//		}
+//		_, _ = UserService.Create(user1)
+//		user := &LoginUser{}
+//		if err := json.Unmarshal([]byte(jsondata1), &user); err != nil {
+//			t.Errorf("failed to unmarshal user data %v", err.Error())
+//		}
+//		res, err := UserService.Login(user)
+//		// expected := "user created successifully"
+//		if res.Token == "" {
+//			assert.EqualValues(t, "", res, "Something went wrong testing with the Logging method")
+//			assert.NotNil(t, err, "Something went wrong testing with the Logging method")
+//		}
+//		// afterparty cleaner
+//		//use uname to clean after testing
+//		UserService.Delete(res.Usercode)
+//	}
 func TestGetAllUser(t *testing.T) {
 
 	user1 := &User{}
@@ -81,23 +81,23 @@ func TestGetOneUser(t *testing.T) {
 	service.Delete(user1.Usercode)
 }
 
-// func TestUpdateUser(t *testing.T) {
-// 	user1 := &User{}
-// 	if err := json.Unmarshal([]byte(jsondata), &user1); err != nil {
-// 		t.Errorf("failed to unmarshal user data %v", err.Error())
-// 	}
-// 	person, _ := UserService.Create(user1)
-// 	// fmt.Println(">>>>>>>>>>>>>>sd", person)
-// 	person.FName = "John"
-// 	// fmt.Println(">>>>>>>>>>>>>>", person)
-// 	u, err := UserService.Update(person.Usercode, person)
-// 	// expected := "user created successifully"
-// 	assert.EqualValues(t, "John", u.FName, "Something went wrong testing with the Getting one method")
-// 	assert.Nil(t, err)
-// 	// afterparty cleaner
-// 	//use uname to clean after testing
-// 	UserService.Delete(user1.Usercode)
-// }
+//	func TestUpdateUser(t *testing.T) {
+//		user1 := &User{}
+//		if err := json.Unmarshal([]byte(jsondata), &user1); err != nil {
+//			t.Errorf("failed to unmarshal user data %v", err.Error())
+//		}
+//		person, _ := UserService.Create(user1)
+//		// fmt.Println(">>>>>>>>>>>>>>sd", person)
+//		person.FName = "John"
+//		// fmt.Println(">>>>>>>>>>>>>>", person)
+//		u, err := UserService.Update(person.Usercode, person)
+//		// expected := "user created successifully"
+//		assert.EqualValues(t, "John", u.FName, "Something went wrong testing with the Getting one method")
+//		assert.Nil(t, err)
+//		// afterparty cleaner
+//		//use uname to clean after testing
+//		UserService.Delete(user1.Usercode)
+//	}
 func TestDeleteUser(t *testing.T) {
 
 	user1 := &User{}

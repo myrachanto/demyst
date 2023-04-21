@@ -61,6 +61,7 @@ func NewUserRepo() UserrepoInterface {
 }
 
 func (r *userrepository) Create(user *User) (*User, httperrors.HttpErr) {
+
 	if err1 := user.Validate(); err1 != nil {
 		return nil, err1
 	}

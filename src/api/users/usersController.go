@@ -61,7 +61,7 @@ func (controller userController) Create(c echo.Context) error {
 	user.Address = c.FormValue("address")
 	user.Email = c.FormValue("email")
 	user.Password = c.FormValue("password")
-	// fmt.Println("----------------------------step1")
+	fmt.Println("----------------------------step1")
 	// user.Business = c.FormValue("business")
 
 	pic, err2 := c.FormFile("picture")

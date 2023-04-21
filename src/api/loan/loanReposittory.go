@@ -26,6 +26,7 @@ type LoanrepoInterface interface {
 	GetOne(id string) (*Loan, httperrors.HttpErr)
 	GetAll(string) ([]*Loan, httperrors.HttpErr)
 	Count() (float64, httperrors.HttpErr)
+	LoanUpdatePreassesment(code string, preasssement int) (int, httperrors.HttpErr)
 }
 type loanrepository struct{}
 
@@ -53,6 +54,26 @@ func (r *loanrepository) Create(loan *Loan) (*Loan, httperrors.HttpErr) {
 	loan.ID = result1.InsertedID.(primitive.ObjectID)
 	return loan, nil
 }
+func (r *loanrepository) LoanUpdatePreassesment(code string, preasssement int) (int, httperrors.HttpErr) {
+	stringresults := httperrors.ValidStringNotEmpty(code)
+	if stringresults.Noerror() {
+		return 0, stringresults
+	}
+
+	filter := bson.M{"code": code}
+	collection := db.Mongodb.Collection("loan")
+	_, errs := collection.UpdateOne(
+		ctx,
+		filter,
+		bson.D{
+			{"$set", bson.D{{"preassesment", preasssement}}},
+		},
+	)
+	if errs != nil {
+		return 0, httperrors.NewNotFoundError("Error updating!")
+	}
+	return preasssement, nil
+}
 func (r *loanrepository) LoanUpdate(code, status string) (string, httperrors.HttpErr) {
 	stringresults := httperrors.ValidStringNotEmpty(code)
 	if stringresults.Noerror() {
@@ -60,7 +81,7 @@ func (r *loanrepository) LoanUpdate(code, status string) (string, httperrors.Htt
 	}
 
 	filter := bson.M{"code": code}
-	collection := db.Mongodb.Collection("user")
+	collection := db.Mongodb.Collection("loan")
 	_, errs := collection.UpdateOne(
 		ctx,
 		filter,
@@ -79,7 +100,7 @@ func (r *loanrepository) GetOne(code string) (loan *Loan, errors httperrors.Http
 		return nil, stringresults
 	}
 	collection := db.Mongodb.Collection("loan")
-	filter := bson.M{"loancode": code}
+	filter := bson.M{"code": code}
 	err := collection.FindOne(ctx, filter).Decode(&loan)
 	if err != nil {
 		return nil, httperrors.NewBadRequestError(fmt.Sprintf("Could not find resource with this id, %d", err))

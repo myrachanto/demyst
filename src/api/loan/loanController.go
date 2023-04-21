@@ -16,6 +16,7 @@ type loanControllerInterface interface {
 	Create(c echo.Context) error
 	GetOne(c echo.Context) error
 	GetAll(c echo.Context) error
+	Submit(c echo.Context) error
 }
 
 type loanController struct {
@@ -50,7 +51,15 @@ func (controller loanController) Create(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusCreated, "failed to parse the loan amount")
 	}
-	loan.Amount = float32(loanAmount)
+	loan.Amount = loanAmount
+	yoe := c.FormValue("year_established")
+	yearofEstablishment, err := strconv.ParseUint(yoe, 10, 32)
+	if err != nil {
+		return c.JSON(http.StatusCreated, "failed to parse the loan amount")
+	}
+
+	loan.YearEstablished = int32(yearofEstablishment)
+
 	_, err1 := controller.service.Create(loan)
 	if err1 != nil {
 		return c.JSON(err1.Code(), err1.Message())
@@ -89,6 +98,24 @@ func (controller loanController) GetAll(c echo.Context) error {
 func (controller loanController) GetOne(c echo.Context) error {
 	code := c.Param("code")
 	loan, problem := controller.service.GetOne(code)
+	if problem != nil {
+		return c.JSON(problem.Code(), problem.Message())
+	}
+	return c.JSON(http.StatusOK, loan)
+}
+
+// @Summary Submit a loan
+// @Description Submit item
+// @Tags loans
+// @Accept json
+// @Produce json
+// @Param        code   query     string  false  "code"
+// @Success 201 {object} loan
+// @Failure 400 {object} support.HttpError
+// @Router /api/loans [get]
+func (controller loanController) Submit(c echo.Context) error {
+	code := c.Param("code")
+	loan, problem := controller.service.Submit(code)
 	if problem != nil {
 		return c.JSON(problem.Code(), problem.Message())
 	}

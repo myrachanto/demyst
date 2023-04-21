@@ -2,8 +2,10 @@ package loan
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 
 	httperrors "github.com/myrachanto/erroring"
@@ -15,8 +17,16 @@ var (
 
 type LoanServiceInterface interface {
 	Create(loan *Loan) (*Loan, httperrors.HttpErr)
-	GetOne(code string) (loan *Loan, errors httperrors.HttpErr)
+	GetOne(code string) (*Results, httperrors.HttpErr)
 	GetAll(search string) ([]*Loan, httperrors.HttpErr)
+	Submit(code string) (string, httperrors.HttpErr)
+	AccountingSoftware(accounts []BalanceSheet, loan *Loan) (*Loan, httperrors.HttpErr)
+	ReadJsonData(filename string) ([]BalanceSheet, httperrors.HttpErr)
+	GetMonth(month string) int
+	GetTheLast12MonthS(month, year int, accounts []BalanceSheet) (res []BalanceSheet)
+	CheckIfGetAverageAsset12BiggerLoan(accounts []BalanceSheet, amount float64) bool
+	CheckIfAllProfit12Months(accounts []BalanceSheet) bool
+	AcountData(accounts []BalanceSheet, loan *Loan) (int, httperrors.HttpErr)
 }
 type loanService struct {
 	repo LoanrepoInterface
@@ -28,27 +38,58 @@ func NewloanService(repository LoanrepoInterface) LoanServiceInterface {
 	}
 }
 func (service *loanService) Create(loan *Loan) (*Loan, httperrors.HttpErr) {
-
-	loan1, err := service.repo.Create(loan)
-	loan2, err := service.AccountingSoftware(loan1)
-	if err != nil {
-		return nil, err
-	}
-
-	return loan, nil
+	return service.repo.Create(loan)
 }
 
 func (service *loanService) GetAll(search string) ([]*Loan, httperrors.HttpErr) {
 	return service.repo.GetAll(search)
 }
-func (service *loanService) GetOne(code string) (*Loan, httperrors.HttpErr) {
-	return service.repo.GetOne(code)
+func (service *loanService) GetOne(code string) (*Results, httperrors.HttpErr) {
+	loan, err := service.repo.GetOne(code)
+	if err != nil {
+		return nil, err
+	}
+	filename := "./sampledata1.json"
+	accounts, err := service.ReadJsonData(filename)
+	if err != nil {
+		return nil, err
+	}
+	loan2, err := service.AccountingSoftware(accounts, loan)
+	if err != nil {
+		return nil, err
+	}
+	return &Results{
+		Data: accounts,
+		Loan: *loan2,
+	}, nil
 }
-func (service *loanService) AccountingSoftware(loan *Loan) (*Loan, httperrors.HttpErr) {
-	if loan.AccountingSoftware == "" {
-		resp := []BalanceSheet{}
-		//TODO populate the balance sheet with the sample data
-		results, err2 := service.AcountData(resp, loan)
+func (service *loanService) Submit(code string) (string, httperrors.HttpErr) {
+	loan, err := service.repo.GetOne(code)
+	if err != nil {
+		return "", err
+	}
+	filename := "./sampledata1.json"
+	accounts, err := service.ReadJsonData(filename)
+	if err != nil {
+		return "", err
+	}
+	loan2, err := service.AccountingSoftware(accounts, loan)
+	if err != nil {
+		return "", err
+	}
+	_, err = service.repo.LoanUpdatePreassesment(loan.Code, loan2.PreAssesment)
+	if err != nil {
+		return "", err
+	}
+	res1, err := service.DecisionAlgorithym(loan2)
+	if err != nil {
+		return "", err
+	}
+	return service.repo.LoanUpdate(loan.Code, res1)
+}
+func (service *loanService) AccountingSoftware(accounts []BalanceSheet, loan *Loan) (*Loan, httperrors.HttpErr) {
+	if !loan.ActiveSoftware {
+		results, err2 := service.AcountData(accounts, loan)
 		if err2 != nil {
 			return nil, err2
 		}
@@ -78,20 +119,65 @@ func (service *loanService) AccountingSoftware(loan *Loan) (*Loan, httperrors.Ht
 		return loan, nil
 	}
 }
-func (service *loanService) DecisionAlgorithym(loan *Loan) (int, httperrors.HttpErr) {
+func (service *loanService) DecisionAlgorithym(loan *Loan) (string, httperrors.HttpErr) {
+	fmt.Println("step1 ----------")
+	if !loan.ActiveDecision {
+		fmt.Println("step2 ----------", loan.PreAssesment)
+		if loan.PreAssesment == 100 {
+			return APPROVED, nil
+		} else if loan.PreAssesment == 60 {
+			return APPROVED, nil
+		} else {
+			return DECLINED, nil
+		}
+	} else {
+		fmt.Println("step2a ----------")
 
+		// TODO write a query to algo
+		algorithyendpoint := ""
+		response, err := http.Get(algorithyendpoint)
+		if err != nil {
+			return "", httperrors.NewNotFoundError("could not reach the accounting software")
+		}
+		defer response.Body.Close()
+		body, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return "", httperrors.NewBadRequestError("could not read the data from the accounting software")
+		}
+		resp := &MessageResp
+		err = json.Unmarshal([]byte(body), resp)
+		if err != nil {
+			return "", httperrors.NewBadRequestError("could not unmarshal the data")
+		}
+		return resp.Message, nil
+	}
+}
+func (service *loanService) ReadJsonData(filename string) ([]BalanceSheet, httperrors.HttpErr) {
+	jsonFile, err := os.Open(filename)
+	if err != nil {
+		return nil, httperrors.NewBadRequestError("could not open the file")
+	}
+	defer jsonFile.Close()
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+	var accounts []BalanceSheet
+	err = json.Unmarshal(byteValue, &accounts)
+	if err != nil {
+		return nil, httperrors.NewBadRequestError("could not unmarshal the json data")
+	}
+	return accounts, nil
 }
 func (service *loanService) AcountData(accounts []BalanceSheet, loan *Loan) (int, httperrors.HttpErr) {
-	//evaluate if the business has made profit in the last 12 months
-	ok := service.CheckIfAllProfit12Months(accounts)
-	if ok {
-		return 60, nil
-	}
 	// evaluate if the average asset value across 12 months is greater than the loan amount
-	ok = service.CheckIfGetAverageAsset12(accounts, loan.Amount)
+	ok := service.CheckIfGetAverageAsset12BiggerLoan(accounts, loan.Amount)
 	if ok {
 		return 100, nil
 	}
+	//evaluate if the business has made profit in the last 12 months
+	ok = service.CheckIfAllProfit12Months(accounts)
+	if ok {
+		return 60, nil
+	}
+
 	return 20, nil
 }
 func (service *loanService) CheckIfAllProfit12Months(accounts []BalanceSheet) bool {
@@ -110,18 +196,19 @@ func (service *loanService) CheckIfAllProfit12Months(accounts []BalanceSheet) bo
 
 	return res
 }
-func (service *loanService) CheckIfGetAverageAsset12(accounts []BalanceSheet, amount float64) bool {
+func (service *loanService) CheckIfGetAverageAsset12BiggerLoan(accounts []BalanceSheet, amount float64) bool {
 	t := time.Now()
 	month := t.Month()
 	year := t.Year()
 	lastMonth := service.GetMonth(month.String()) - 1
 	last12Months := service.GetTheLast12MonthS(lastMonth, year, accounts)
 	total := 0.0
+
 	for _, account := range last12Months {
+		// fmt.Println("vamos----------", account.AssetsValue)
 		total += account.AssetsValue
 	}
 	results := total / 12
-
 	return results > amount
 }
 
@@ -142,15 +229,17 @@ func (service *loanService) GetTheLast12MonthS(month, year int, accounts []Balan
 		if len(results) == 12 {
 			break
 		}
-		if month > 0 {
-			if account.Year == year && account.Month == month {
-				results = append(results, account)
-			}
+		if account.Year == year && account.Month == month {
+			results = append(results, account)
+			month--
 		} else {
-			year = year - 1
+			year--
+			month = 12
 			if account.Year == year && account.Month == month {
 				results = append(results, account)
+				month--
 			}
+
 		}
 
 	}

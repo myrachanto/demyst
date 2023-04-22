@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/myrachanto/demyst/src/api/accounting"
+	"github.com/myrachanto/demyst/src/api/business"
 	"github.com/myrachanto/demyst/src/api/loan"
 	"github.com/myrachanto/demyst/src/api/users"
 	m "github.com/myrachanto/demyst/src/middleware"
@@ -20,6 +21,7 @@ import (
 func ApiLoader() {
 	u := users.NewUserController(users.NewUserService(users.NewUserRepo()))
 	l := loan.NewloanController(loan.NewloanService(loan.NewloanRepo()))
+	b := business.NewbusinessController(business.NewbusinessService(business.NewbusinessRepo()))
 	a := accounting.NewaccountingController(accounting.NewaccountingService(accounting.NewaccountingRepo()))
 	err := godotenv.Load()
 	if err != nil {
@@ -52,6 +54,12 @@ func ApiLoader() {
 	api.GET("/loans", l.GetAll, m.PasetoAuthMiddleware)
 	api.GET("/loans/:code", l.GetOne, m.PasetoAuthMiddleware)
 	api.PUT("/loans/:code", l.Submit, m.PasetoAuthMiddleware)
+
+	api.POST("/business", b.Create, m.PasetoAuthMiddleware)
+	api.GET("/business", b.GetAll, m.PasetoAuthMiddleware)
+	api.GET("/business/:code", b.GetOne, m.PasetoAuthMiddleware)
+	api.PUT("/business/:code", b.Update, m.PasetoAuthMiddleware)
+	api.DELETE("/business/:code", b.Delete, m.PasetoAuthMiddleware)
 
 	api.POST("/accountings", a.Create, m.PasetoAuthMiddleware)
 	api.GET("/accountings", a.GetAll, m.PasetoAuthMiddleware)

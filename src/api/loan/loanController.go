@@ -44,7 +44,7 @@ func (controller loanController) Create(c echo.Context) error {
 
 	loan := &Loan{}
 	loan.Name = c.FormValue("name")
-	loan.BusinessPin = c.FormValue("business_pin")
+	loan.Business = c.FormValue("business")
 	loan.AccountingSoftware = c.FormValue("accounting_software")
 	amount := c.FormValue("amount")
 	loanAmount, err := strconv.ParseFloat(amount, 32)
@@ -52,13 +52,6 @@ func (controller loanController) Create(c echo.Context) error {
 		return c.JSON(http.StatusCreated, "failed to parse the loan amount")
 	}
 	loan.Amount = loanAmount
-	yoe := c.FormValue("year_established")
-	yearofEstablishment, err := strconv.ParseUint(yoe, 10, 32)
-	if err != nil {
-		return c.JSON(http.StatusCreated, "failed to parse the loan amount")
-	}
-
-	loan.YearEstablished = int32(yearofEstablishment)
 
 	_, err1 := controller.service.Create(loan)
 	if err1 != nil {

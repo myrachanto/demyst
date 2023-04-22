@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/myrachanto/demyst/src/api/accounting"
+	"github.com/myrachanto/demyst/src/api/business"
 	httperrors "github.com/myrachanto/erroring"
 )
 
@@ -38,6 +40,17 @@ func NewloanService(repository LoanrepoInterface) LoanServiceInterface {
 	}
 }
 func (service *loanService) Create(loan *Loan) (*Loan, httperrors.HttpErr) {
+	business, err := business.Businessrepo.GetOneByName(loan.Business)
+	if err != nil {
+		return nil, err
+	}
+	loan.BusinessCode = business.Code
+	loan.YearEstablished = int32(business.YearEstablished)
+	accounting, err := accounting.Accountingrepo.GetOneByName(loan.AccountingSoftware)
+	if err != nil {
+		return nil, err
+	}
+	loan.AccountingSoftwareCode = accounting.Code
 	return service.repo.Create(loan)
 }
 
@@ -209,6 +222,7 @@ func (service *loanService) CheckIfGetAverageAsset12BiggerLoan(accounts []Balanc
 		total += account.AssetsValue
 	}
 	results := total / 12
+	// fmt.Println("--------------", total, results)
 	return results > amount
 }
 

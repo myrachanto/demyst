@@ -1,0 +1,69 @@
+name: Go
+
+on:
+  push:
+    branches: [ feature, master]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: MongoDB in GitHub Actions
+      # You may pin to the exact commit or the version.
+      # uses: supercharge/mongodb-github-action@e815fd8a9dfede09fd6e6c144f2c9f4875e933df
+      uses: supercharge/mongodb-github-action@1.7.0
+      with:
+        mongodb-db: demyst # optional, default is 
+        # MongoDB root username (default: none)
+#         mongodb-username: # optional, default is 
+        # MongoDB root password (default: none)
+#         mongodb-password: # optional, default is 
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.18
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v ./...
+  tag:
+    name: Tag
+    needs: [build]
+    runs-on: ubuntu-latest
+    outputs:
+      new_tag: ${{ steps.tag_version.outputs.new_tag }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v5.1
+        with:
+          github_token: ${{ secrets.GITHUBTOKEN }}
+          tag_prefix: ""
+  docker:
+    name: Build Docker Image
+    needs: [tag]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          github_token: ${{ secrets.GITHUBTOKEN }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/single:${{needs.tag.outputs.new_tag}}
+

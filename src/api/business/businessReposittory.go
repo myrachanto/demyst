@@ -1,4 +1,4 @@
-package accounting
+package business
 
 import (
 	"context"
@@ -13,63 +13,80 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// accountingrepository repository
+// businessrepository repository
 var (
-	Accountingrepository AccountingrepoInterface = &accountingrepository{}
-	ctx                                          = context.TODO()
-	Accountingrepo                               = accountingrepository{}
+	Businessrepository BusinessrepoInterface = &businessrepository{}
+	ctx                                      = context.TODO()
+	Businessrepo                             = businessrepository{}
 )
 
-type AccountingrepoInterface interface {
-	Create(accounting *Accounting) (*Accounting, httperrors.HttpErr)
-	GetOne(id string) (*Accounting, httperrors.HttpErr)
-	GetAll(string) ([]*Accounting, httperrors.HttpErr)
-	Update(code string, accounting *Accounting) (string, httperrors.HttpErr)
+type BusinessrepoInterface interface {
+	Create(business *Business) (*Business, httperrors.HttpErr)
+	GetOne(id string) (*Business, httperrors.HttpErr)
+	GetAll(string) ([]*Business, httperrors.HttpErr)
+	Update(code string, business *Business) (string, httperrors.HttpErr)
 	Delete(id string) (string, httperrors.HttpErr)
 	Count() (float64, httperrors.HttpErr)
-	GetOneByName(name string) (ac *Accounting, errors httperrors.HttpErr)
+	GetOneByName(name string) (business *Business, errors httperrors.HttpErr)
 }
-type accountingrepository struct{}
+type businessrepository struct{}
 
-func NewaccountingRepo() AccountingrepoInterface {
-	return &accountingrepository{}
+func NewbusinessRepo() BusinessrepoInterface {
+	return &businessrepository{}
 }
 
-func (r *accountingrepository) Create(accounting *Accounting) (*Accounting, httperrors.HttpErr) {
-	if err1 := accounting.Validate(); err1 != nil {
+func (r *businessrepository) Create(business *Business) (*Business, httperrors.HttpErr) {
+	if err1 := business.Validate(); err1 != nil {
 		return nil, err1
 	}
 	code, errs := r.genecode()
 	if errs != nil {
 		return nil, errs
 	}
-	accounting.Code = code
-	accounting.Base.Updated_At = time.Now()
-	accounting.Base.Created_At = time.Now()
-	collection := db.Mongodb.Collection("accounting")
-	result1, err := collection.InsertOne(ctx, &accounting)
+	business.Code = code
+	business.Base.Updated_At = time.Now()
+	business.Base.Created_At = time.Now()
+	collection := db.Mongodb.Collection("business")
+	result1, err := collection.InsertOne(ctx, &business)
 	if err != nil {
-		return nil, httperrors.NewBadRequestError(fmt.Sprintf("Create accounting Failed, %d", err))
+		return nil, httperrors.NewBadRequestError(fmt.Sprintf("Create business Failed, %d", err))
 	}
-	accounting.ID = result1.InsertedID.(primitive.ObjectID)
-	return accounting, nil
+	business.ID = result1.InsertedID.(primitive.ObjectID)
+	return business, nil
 }
-func (r *accountingrepository) GetOne(code string) (accounting *Accounting, errors httperrors.HttpErr) {
+func (r *businessrepository) GetOne(code string) (business *Business, errors httperrors.HttpErr) {
 	stringresults := httperrors.ValidStringNotEmpty(code)
 	if stringresults.Noerror() {
 		return nil, stringresults
 	}
-	collection := db.Mongodb.Collection("accounting")
+	collection := db.Mongodb.Collection("business")
 	filter := bson.M{"code": code}
-	err := collection.FindOne(ctx, filter).Decode(&accounting)
+	err := collection.FindOne(ctx, filter).Decode(&business)
 	if err != nil {
 		return nil, httperrors.NewBadRequestError(fmt.Sprintf("Could not find resource with this id, %d", err))
 	}
-	return accounting, nil
+	return business, nil
 }
-func (r *accountingrepository) GetAll(search string) ([]*Accounting, httperrors.HttpErr) {
-	collection := db.Mongodb.Collection("accounting")
-	results := []*Accounting{}
+func (r *businessrepository) GetOneByName(name string) (business *Business, errors httperrors.HttpErr) {
+	stringresults := httperrors.ValidStringNotEmpty(name)
+	if stringresults.Noerror() {
+		return nil, stringresults
+	}
+	collection := db.Mongodb.Collection("business")
+	filter := bson.D{
+		{"$and", bson.A{
+			bson.D{{"name", primitive.Regex{Pattern: name, Options: "i"}}},
+		}},
+	}
+	err := collection.FindOne(ctx, filter).Decode(&business)
+	if err != nil {
+		return nil, httperrors.NewBadRequestError(fmt.Sprintf("Could not find resource with this id, %d", err))
+	}
+	return business, nil
+}
+func (r *businessrepository) GetAll(search string) ([]*Business, httperrors.HttpErr) {
+	collection := db.Mongodb.Collection("business")
+	results := []*Business{}
 	fmt.Println(search)
 	if search != "" {
 		// 	filter := bson.D{
@@ -105,62 +122,44 @@ func (r *accountingrepository) GetAll(search string) ([]*Accounting, httperrors.
 
 }
 
-func (r *accountingrepository) Update(code string, accounting *Accounting) (string, httperrors.HttpErr) {
+func (r *businessrepository) Update(code string, business *Business) (string, httperrors.HttpErr) {
 	stringresults := httperrors.ValidStringNotEmpty(code)
 	if stringresults.Noerror() {
 		return "", stringresults
 	}
 
 	filter := bson.M{"code": code}
-	collection := db.Mongodb.Collection("accounting")
-	var ac Accounting
+	collection := db.Mongodb.Collection("business")
+	var ac Business
 	err := collection.FindOne(ctx, filter).Decode(&ac)
 	if err != nil {
 		return "", httperrors.NewBadRequestError(fmt.Sprintf("Could not find resource with this id, %d", err))
 	}
-	if accounting.Name == "" {
-		accounting.Name = ac.Name
+	if business.Name == "" {
+		business.Name = ac.Name
 	}
-	if accounting.Code == "" {
-		accounting.Code = ac.Code
+	if business.Code == "" {
+		business.Code = ac.Code
 	}
-	if accounting.BusinessPin == "" {
-		accounting.BusinessPin = ac.BusinessPin
+	if business.BusinessPin == "" {
+		business.BusinessPin = ac.BusinessPin
 	}
-	if accounting.UrlEndpoint == "" {
-		accounting.UrlEndpoint = ac.UrlEndpoint
+	if business.YearEstablished == 0 {
+		business.YearEstablished = ac.YearEstablished
 	}
-	update := bson.M{"$set": accounting}
+	update := bson.M{"$set": business}
 	_, errs := collection.UpdateOne(ctx, filter, update)
 	if errs != nil {
 		return "", httperrors.NewNotFoundError("Error updating!")
 	}
 	return "successifully Updated!", nil
 }
-
-func (r *accountingrepository) GetOneByName(name string) (ac *Accounting, errors httperrors.HttpErr) {
-	stringresults := httperrors.ValidStringNotEmpty(name)
-	if stringresults.Noerror() {
-		return nil, stringresults
-	}
-	collection := db.Mongodb.Collection("accounting")
-	filter := bson.D{
-		{"$and", bson.A{
-			bson.D{{"name", primitive.Regex{Pattern: name, Options: "i"}}},
-		}},
-	}
-	err := collection.FindOne(ctx, filter).Decode(&ac)
-	if err != nil {
-		return nil, httperrors.NewBadRequestError(fmt.Sprintf("Could not find resource with this id, %d", err))
-	}
-	return ac, nil
-}
-func (r accountingrepository) Delete(id string) (string, httperrors.HttpErr) {
+func (r businessrepository) Delete(id string) (string, httperrors.HttpErr) {
 	stringresults := httperrors.ValidStringNotEmpty(id)
 	if stringresults.Noerror() {
 		return "", stringresults
 	}
-	collection := db.Mongodb.Collection("accounting")
+	collection := db.Mongodb.Collection("business")
 
 	filter := bson.M{"code": id}
 	ok, err := collection.DeleteOne(ctx, filter)
@@ -170,40 +169,40 @@ func (r accountingrepository) Delete(id string) (string, httperrors.HttpErr) {
 	return "deleted successfully", nil
 
 }
-func (r accountingrepository) genecode() (string, httperrors.HttpErr) {
+func (r businessrepository) genecode() (string, httperrors.HttpErr) {
 
 	timestamp := strconv.FormatInt(time.Now().UTC().Unix(), 10)
 	special := timestamp[1:5]
-	collection := db.Mongodb.Collection("accounting")
+	collection := db.Mongodb.Collection("business")
 	filter := bson.M{}
 	count, err := collection.CountDocuments(ctx, filter)
 	co := count + 1
 	if err != nil {
 		return "", httperrors.NewNotFoundError("no results found")
 	}
-	cod := "accountingCode-" + strconv.FormatUint(uint64(co), 10) + "-" + special
+	cod := "businessCode-" + strconv.FormatUint(uint64(co), 10) + "-" + special
 	code := support.Hasher(cod)
 	if code == "" {
 		return "", httperrors.NewNotFoundError("THe string is empty")
 	}
 	return code, nil
 }
-func (r accountingrepository) getuno(code string) (result *Accounting, err httperrors.HttpErr) {
+func (r businessrepository) getuno(code string) (result *Business, err httperrors.HttpErr) {
 	stringresults := httperrors.ValidStringNotEmpty(code)
 	if stringresults.Noerror() {
 		return nil, stringresults
 	}
-	collection := db.Mongodb.Collection("accounting")
-	filter := bson.M{"accountingcode": code}
+	collection := db.Mongodb.Collection("business")
+	filter := bson.M{"businesscode": code}
 	err1 := collection.FindOne(ctx, filter).Decode(&result)
 	if err1 != nil {
 		return nil, httperrors.NewNotFoundError("no results found")
 	}
 	return result, nil
 }
-func (r accountingrepository) Count() (float64, httperrors.HttpErr) {
+func (r businessrepository) Count() (float64, httperrors.HttpErr) {
 
-	collection := db.Mongodb.Collection("accounting")
+	collection := db.Mongodb.Collection("business")
 	filter := bson.M{}
 	count, err := collection.CountDocuments(ctx, filter)
 	if err != nil {

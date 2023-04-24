@@ -53,7 +53,10 @@ func (l Loan) Validate() httperrors.HttpErr {
 		return httperrors.NewBadRequestError("Name should not be empty")
 	}
 	if l.Business == "" {
-		return httperrors.NewBadRequestError("Business Pin should not be empty")
+		return httperrors.NewBadRequestError("Business Name should not be empty")
+	}
+	if l.Amount == 0 {
+		return httperrors.NewBadRequestError("Amount should not be empty")
 	}
 	return nil
 }

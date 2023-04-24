@@ -284,6 +284,7 @@ func (r *userrepository) Update(code string, user *User) (*User, httperrors.Http
 	if err != nil {
 		return nil, httperrors.NewBadRequestError(fmt.Sprintf("Could not find resource with this id, %d", err))
 	}
+	fmt.Println("-------------------step 1")
 
 	if user.Firstname == "" {
 		user.Firstname = uuser.Firstname
@@ -310,10 +311,12 @@ func (r *userrepository) Update(code string, user *User) (*User, httperrors.Http
 		user.Usercode = uuser.Usercode
 	}
 	update := bson.M{"$set": user}
+	fmt.Println("-------------------step 2")
 	_, errs := collection.UpdateOne(ctx, filter, update)
 	if errs != nil {
 		return nil, httperrors.NewNotFoundError("Error updating!")
 	}
+	fmt.Println("-------------------step 3")
 	u, e := r.getuno(user.Usercode)
 	if e != nil {
 		return nil, httperrors.NewNotFoundError("that email exist in the our system!")

@@ -2,7 +2,6 @@ package loan
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -94,7 +93,7 @@ func (service *loanService) Submit(code string) (string, httperrors.HttpErr) {
 	if err != nil {
 		return "", err
 	}
-	res1, err := service.DecisionAlgorithym(loan2)
+	res1, err := service.DecisionAlgorithym(loan2, accounts)
 	if err != nil {
 		return "", err
 	}
@@ -132,19 +131,22 @@ func (service *loanService) AccountingSoftware(accounts []BalanceSheet, loan *Lo
 		return loan, nil
 	}
 }
-func (service *loanService) DecisionAlgorithym(loan *Loan) (string, httperrors.HttpErr) {
-	fmt.Println("step1 ----------")
+func (service *loanService) DecisionAlgorithym(loan *Loan, accounts []BalanceSheet) (string, httperrors.HttpErr) {
 	if !loan.ActiveDecision {
-		fmt.Println("step2 ----------", loan.PreAssesment)
-		if loan.PreAssesment == 100 {
-			return APPROVED, nil
-		} else if loan.PreAssesment == 60 {
-			return APPROVED, nil
+
+		if len(accounts) >= 12 {
+			if loan.PreAssesment == 100 {
+				return APPROVED, nil
+			} else if loan.PreAssesment == 60 {
+				return APPROVED, nil
+			} else {
+				return DECLINED, nil
+			}
 		} else {
+
 			return DECLINED, nil
 		}
 	} else {
-		fmt.Println("step2a ----------")
 
 		// TODO write a query to algo
 		algorithyendpoint := ""
@@ -209,23 +211,6 @@ func (service *loanService) CheckIfAllProfit12Months(accounts []BalanceSheet) bo
 
 	return res
 }
-func (service *loanService) CheckIfGetAverageAsset12BiggerLoan(accounts []BalanceSheet, amount float64) bool {
-	t := time.Now()
-	month := t.Month()
-	year := t.Year()
-	lastMonth := service.GetMonth(month.String()) - 1
-	last12Months := service.GetTheLast12MonthS(lastMonth, year, accounts)
-	total := 0.0
-
-	for _, account := range last12Months {
-		// fmt.Println("vamos----------", account.AssetsValue)
-		total += account.AssetsValue
-	}
-	results := total / 12
-	// fmt.Println("--------------", total, results)
-	return results > amount
-}
-
 func (service *loanService) GetMonth(month string) int {
 	monthslookup := []string{"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"}
 	var res = -1
@@ -258,4 +243,22 @@ func (service *loanService) GetTheLast12MonthS(month, year int, accounts []Balan
 
 	}
 	return results
+} 
+func (service *loanService) CheckIfGetAverageAsset12BiggerLoan(accounts []BalanceSheet, amount float64) bool {
+	t := time.Now()
+	month := t.Month()
+	year := t.Year()
+	lastMonth := service.GetMonth(month.String()) - 1
+	last12Months := service.GetTheLast12MonthS(lastMonth, year, accounts)
+	total := 0.0
+
+	for _, account := range last12Months {
+		// fmt.Println("vamos----------", account.AssetsValue)
+		total += account.AssetsValue
+	}
+	results := total / 12
+	// fmt.Println("--------------", total, results)
+	return results > amount
 }
+
+

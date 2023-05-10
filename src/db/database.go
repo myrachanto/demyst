@@ -27,12 +27,12 @@ type mongorepo struct {
 }
 
 func init() {
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017") //locally hosted db accessed by no dockerised app
+	// clientOptions := options.Client().ApplyURI("mongodb://localhost:27017") //locally hosted db accessed by no dockerised app
 	// if clientOptions.AppName == nil {
-	// 	clientOptions = options.Client().ApplyURI("mongodb://host.docker.internal:27017") //locally hosted db accessed by dockerized app
+	// clientOptions := options.Client().ApplyURI("mongodb://host.docker.internal:27017") //locally hosted db accessed by dockerized app
 	// }
 	// clientOptions := options.Client().ApplyURI("mongodb://host.docker.internal:27017")//locally hosted db accessed by dockerized app
-	// clientOptions := options.Client().ApplyURI("mongodb://mongo-database:27017") //dockerized docker compose  db accessed by dockerized app
+	clientOptions := options.Client().ApplyURI("mongodb://mongodb:27017") //dockerized docker compose  db accessed by dockerized app
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		log.Fatal(err)

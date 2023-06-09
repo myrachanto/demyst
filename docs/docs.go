@@ -15,6 +15,171 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/admin/update/:code": {
+            "put": {
+                "description": "Update a user item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Update a user Admin",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "code",
+                        "name": "code",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/users.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/categorys": {
+            "get": {
+                "description": "Get item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "categorys"
+                ],
+                "summary": "Get a category",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "code",
+                        "name": "code",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/category.Category"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an new category item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "categorys"
+                ],
+                "summary": "Update an category",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/category.Category"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delte item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "categorys"
+                ],
+                "summary": "Delte a category",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "code",
+                        "name": "code",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/category.Category"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dashboard": {
+            "get": {
+                "description": "Get  Dashboard",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Get  Dashboard",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dashboard.Dashboard"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            }
+        },
         "/api/logout": {
             "post": {
                 "description": "logout user",
@@ -33,6 +198,357 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/users.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/news": {
+            "get": {
+                "description": "Get item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "news"
+                ],
+                "summary": "Get a news",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "code",
+                        "name": "code",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/news.News"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an new news item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "news"
+                ],
+                "summary": "Update an news",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/news.News"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new news item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "news"
+                ],
+                "summary": "Create a news",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/news.News"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delte item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "news"
+                ],
+                "summary": "Delete a news",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "code",
+                        "name": "code",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/news.News"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/pages": {
+            "get": {
+                "description": "Get item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pages"
+                ],
+                "summary": "Get a page",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "code",
+                        "name": "code",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/pages.Page"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an new page item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pages"
+                ],
+                "summary": "Update an page",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/pages.Page"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new page item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pages"
+                ],
+                "summary": "Create a page",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/pages.Page"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delte item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pages"
+                ],
+                "summary": "Delte a page",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "code",
+                        "name": "code",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/pages.Page"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/tags": {
+            "get": {
+                "description": "Get item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "Get a tag",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "code",
+                        "name": "code",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/tags.Tag"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an new tag item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "Update an tag",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tags.Tag"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delte item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "Delte a tag",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "code",
+                        "name": "code",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tags.Tag"
                         }
                     },
                     "400": {
@@ -115,33 +631,6 @@ const docTemplate = `{
                     }
                 }
             },
-            "post": {
-                "description": "Create a new user item",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Create a user",
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/users.User"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/support.HttpError"
-                        }
-                    }
-                }
-            },
             "delete": {
                 "description": "Create a new user item",
                 "consumes": [
@@ -207,7 +696,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/front/forgot": {
+        "/forgot": {
             "post": {
                 "description": "Forgot user",
                 "consumes": [
@@ -236,9 +725,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/front/login": {
+        "/front/forgot": {
             "post": {
-                "description": "Login user",
+                "description": "Forgot user",
                 "consumes": [
                     "application/json"
                 ],
@@ -248,10 +737,10 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Login a user",
+                "summary": "Forgot a user",
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/users.User"
                         }
@@ -288,9 +777,401 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/home": {
+            "get": {
+                "description": "Get  Home",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Home"
+                ],
+                "summary": "Get  Home",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dashboard.Home"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "description": "Login user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Login a user",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/users.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/news": {
+            "get": {
+                "description": "Get  BY Category item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "news"
+                ],
+                "summary": "Get  BY Category a news",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "code",
+                        "name": "code",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/news.News"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users": {
+            "post": {
+                "description": "Create a new user item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Create a user",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/users.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/support.HttpError"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "category.Category": {
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "base": {
+                    "$ref": "#/definitions/support.Base"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dashboard.ChartData": {
+            "type": "object",
+            "properties": {
+                "all": {
+                    "$ref": "#/definitions/dashboard.Module"
+                },
+                "exclusive": {
+                    "$ref": "#/definitions/dashboard.Module"
+                },
+                "featured": {
+                    "$ref": "#/definitions/dashboard.Module"
+                },
+                "latest": {
+                    "$ref": "#/definitions/dashboard.Module"
+                },
+                "trending": {
+                    "$ref": "#/definitions/dashboard.Module"
+                }
+            }
+        },
+        "dashboard.Dashboard": {
+            "type": "object",
+            "properties": {
+                "all": {
+                    "$ref": "#/definitions/dashboard.Module"
+                },
+                "chartdata": {
+                    "$ref": "#/definitions/dashboard.ChartData"
+                },
+                "exclusive": {
+                    "$ref": "#/definitions/dashboard.Module"
+                },
+                "featured": {
+                    "$ref": "#/definitions/dashboard.Module"
+                },
+                "linechart": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/news.Weekly"
+                    }
+                },
+                "news": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/news.News"
+                    }
+                },
+                "sportcount": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/news.SportCount"
+                    }
+                },
+                "trending": {
+                    "$ref": "#/definitions/dashboard.Module"
+                }
+            }
+        },
+        "dashboard.Home": {
+            "type": "object",
+            "properties": {
+                "exclusive": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/news.News"
+                    }
+                },
+                "featured": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/news.News"
+                    }
+                },
+                "latest": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/news.News"
+                    }
+                },
+                "seo": {
+                    "$ref": "#/definitions/pages.Page"
+                },
+                "trending": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/news.News"
+                    }
+                }
+            }
+        },
+        "dashboard.Module": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "news.Comment": {
+            "type": "object",
+            "properties": {
+                "image": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "time_ago": {
+                    "type": "string"
+                }
+            }
+        },
+        "news.News": {
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "base": {
+                    "$ref": "#/definitions/support.Base"
+                },
+                "caption": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "comments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/news.Comment"
+                    }
+                },
+                "content": {
+                    "type": "string"
+                },
+                "exclusive": {
+                    "type": "boolean"
+                },
+                "featured": {
+                    "type": "boolean"
+                },
+                "meta": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "picture": {
+                    "type": "string"
+                },
+                "sections": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/news.Section"
+                    }
+                },
+                "sport": {
+                    "type": "string"
+                },
+                "time_ago": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "trending": {
+                    "type": "boolean"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "news.Section": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "highlight": {
+                    "type": "boolean"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "news.SportCount": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "sport": {
+                    "type": "string"
+                }
+            }
+        },
+        "news.Weekly": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "pages.Page": {
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "base": {
+                    "$ref": "#/definitions/support.Base"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "meta": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "support.Base": {
             "type": "object",
             "properties": {
@@ -322,6 +1203,29 @@ const docTemplate = `{
                 }
             }
         },
+        "tags.Tag": {
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "base": {
+                    "$ref": "#/definitions/support.Base"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "users.User": {
             "type": "object",
             "properties": {
@@ -330,6 +1234,9 @@ const docTemplate = `{
                 },
                 "address": {
                     "type": "string"
+                },
+                "admin": {
+                    "type": "boolean"
                 },
                 "base": {
                     "$ref": "#/definitions/support.Base"
@@ -340,10 +1247,7 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "firstname": {
-                    "type": "string"
-                },
-                "lastname": {
+                "fullname": {
                     "type": "string"
                 },
                 "password": {

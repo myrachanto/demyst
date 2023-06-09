@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/myrachanto/demyst/src/support"
+	"github.com/myrachanto/sports/src/support"
 	httperrors "github.com/myrachanto/erroring"
 	"github.com/o1egl/paseto"
 	"golang.org/x/crypto/chacha20poly1305"

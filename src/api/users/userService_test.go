@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/myrachanto/sports/src/support"
 	"github.com/stretchr/testify/assert"
 )
 
-var jsondata1 = `{"firstname":"jane","lastname":"Doe","username":"doe","Usercode": "Doe345","Phone":"1234567","Email":   "email@example.com","Password": "1234567","Address":"psd 456 king view"}`
+var jsondata1 = `{"fullname":"jane","username":"doe","Usercode": "Doe345","Phone":"1234567","Email":   "email@example.com","Password": "1234567","Address":"psd 456 king view"}`
 
 func TestServiceCreateUser(t *testing.T) {
 	user := &User{}
@@ -16,7 +17,7 @@ func TestServiceCreateUser(t *testing.T) {
 	}
 	service := NewUserService(NewUserRepo())
 	u, err := service.Create(user)
-	assert.EqualValues(t, "jane", u.Firstname)
+	assert.EqualValues(t, "jane", u.Fullname)
 	assert.Nil(t, err)
 	service.Delete(u.Usercode)
 }
@@ -28,7 +29,7 @@ func TestServiceGetAllUser(t *testing.T) {
 	}
 	service := NewUserService(NewUserRepo())
 	user1, _ := service.Create(user)
-	_, err := service.GetAll("")
+	_, err := service.GetAll(support.Paginator{})
 	assert.Nil(t, err)
 	service.Delete(user1.Usercode)
 }

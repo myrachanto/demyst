@@ -3,12 +3,15 @@ package users
 import (
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	httperrors "github.com/myrachanto/erroring"
 	"github.com/myrachanto/imagery"
+	"github.com/myrachanto/sports/src/support"
 )
 
 // UserController ...
@@ -28,6 +31,7 @@ type UserControllerInterface interface {
 	PasswordUpdate(c echo.Context) error
 	PasswordReset(c echo.Context) error
 	Delete(c echo.Context) error
+	UpdateAdmin(c echo.Context) error
 }
 
 type userController struct {
@@ -50,76 +54,21 @@ func NewUserController(ser UserServiceInterface) UserControllerInterface {
 // @Produce json
 // @Success 201 {object} User
 // @Failure 400 {object} support.HttpError
-// @Router /api/users [post]
+// @Router /users [post]
 func (controller userController) Create(c echo.Context) error {
 
 	user := &User{}
-	user.Firstname = c.FormValue("fname")
-	user.Lastname = c.FormValue("lname")
-	user.Username = c.FormValue("uname")
+	user.Fullname = c.FormValue("fullname")
+	user.Username = c.FormValue("username")
 	user.Phone = c.FormValue("phone")
-	user.Address = c.FormValue("address")
+	// user.Address = c.FormValue("address")
 	user.Email = c.FormValue("email")
 	user.Password = c.FormValue("password")
-	fmt.Println("----------------------------step1")
-	// user.Business = c.FormValue("business")
-
-	pic, err2 := c.FormFile("picture")
-	if pic != nil {
-		//    fmt.Println(pic.Filename)
-		if err2 != nil {
-			httperror := httperrors.NewBadRequestError("Invalid picture")
-			return c.JSON(httperror.Code(), err2.Error())
-		}
-		src, err := pic.Open()
-		if err != nil {
-			httperror := httperrors.NewBadRequestError("the picture is corrupted")
-			return c.JSON(httperror.Code(), err.Error())
-		}
-		defer src.Close()
-		// filePath := "./public/imgs/users/"
-		filePath := "./src/public/imgs/users/" + user.Username + pic.Filename
-		filePath1 := "/imgs/users/" + user.Username + pic.Filename
-		// Destination
-		dst, err4 := os.Create(filePath)
-		if err4 != nil {
-			httperror := httperrors.NewBadRequestError("the Directory mess")
-			return c.JSON(httperror.Code(), err4.Error())
-		}
-		defer dst.Close()
-		// Copy
-		if _, err = io.Copy(dst, src); err != nil {
-			if err2 != nil {
-				httperror := httperrors.NewBadRequestError("error filling")
-				return c.JSON(httperror.Code(), httperror.Message())
-			}
-
-		}
-		// fmt.Println("----------------------------step2")
-		//resize the image and replace the old one
-		imagery.Imageryrepository.Imagetype(filePath, filePath, 400, 500)
-
-		// fmt.Println("----------------------------step3")
-		user.Picture = filePath1
-		_, err1 := controller.service.Create(user)
-		// fmt.Println("----------------------------step4", err1)
-		if err1 != nil {
-			return c.JSON(err1.Code(), err1.Message())
-		}
-		if _, err = io.Copy(dst, src); err != nil {
-			if err2 != nil {
-				httperror := httperrors.NewBadRequestError("error filling")
-				return c.JSON(httperror.Code(), httperror.Message())
-			}
-		}
-		return c.JSON(http.StatusCreated, "user created succesifully")
-	} else {
-		_, err1 := controller.service.Create(user)
-		if err1 != nil {
-			return c.JSON(err1.Code(), err1.Message())
-		}
-		return c.JSON(http.StatusCreated, "user created succesifully")
+	_, err1 := controller.service.Create(user)
+	if err1 != nil {
+		return c.JSON(err1.Code(), err1.Message())
 	}
+	return c.JSON(http.StatusCreated, "user created succesifully")
 }
 
 // Login godoc
@@ -130,7 +79,7 @@ func (controller userController) Create(c echo.Context) error {
 // @Produce json
 // @Success 201 {object} User
 // @Failure 400 {object} support.HttpError
-// @Router /front/login [post]
+// @Router /login [post]
 func (controller userController) Login(c echo.Context) error {
 	user := &LoginUser{}
 	user.Email = c.FormValue("email")
@@ -193,7 +142,22 @@ func (controller userController) Logout(c echo.Context) error {
 // @Router /api/users [get]
 func (controller userController) GetAll(c echo.Context) error {
 	search := c.QueryParam("search")
-	users, err3 := controller.service.GetAll(search)
+	ps := c.QueryParam("pagesize")
+	pn := c.QueryParam("pagenumber")
+	page, err := strconv.Atoi(pn)
+	// fmt.Println("----------------------sdfgghh")
+	if err != nil {
+		fmt.Println("Invalid pagesize")
+		page = 1
+	}
+	pagesize, err := strconv.Atoi(ps)
+	if err != nil {
+		fmt.Println("Invalid pagesize")
+		pagesize = 10
+	}
+	searcher := support.Paginator{Page: page, Pagesize: pagesize, Search: search}
+
+	users, err3 := controller.service.GetAll(searcher)
 	if err3 != nil {
 		return c.JSON(err3.Code(), err3.Message())
 	}
@@ -226,7 +190,7 @@ func (controller userController) GetOne(c echo.Context) error {
 // @Produce json
 // @Success 200 {object} User
 // @Failure 400 {object} support.HttpError
-// @Router /front/forgot [post]
+// @Router /forgot [post]
 func (controller userController) Forgot(c echo.Context) error {
 	email := c.FormValue("email")
 	_, problem := controller.service.Forgot(email)
@@ -288,66 +252,53 @@ func (controller userController) PasswordReset(c echo.Context) error {
 // @Router /api/users [put]
 func (controller userController) Update(c echo.Context) error {
 	user := &User{}
-	user.Firstname = c.FormValue("fname")
-	user.Lastname = c.FormValue("lname")
-	user.Username = c.FormValue("uname")
+	user.Fullname = c.FormValue("fullname")
+	user.Username = c.FormValue("username")
 	user.Phone = c.FormValue("phone")
-	user.Address = c.FormValue("address")
-	user.Email = c.FormValue("email")
-	image := c.FormValue("image")
-	// user.Business = c.FormValue("business")
 	code := c.Param("code")
 	pic, err2 := c.FormFile("picture")
-	if image == "yes" {
-		//    fmt.Println(pic.Filename)
-		if err2 != nil {
-			httperror := httperrors.NewBadRequestError("Invalid picture")
-			return c.JSON(httperror.Code(), err2.Error())
-		}
-		src, err := pic.Open()
-		if err != nil {
-			httperror := httperrors.NewBadRequestError("the picture is corrupted")
-			return c.JSON(httperror.Code(), err.Error())
-		}
-		defer src.Close()
-		// filePath := "./public/imgs/users/"
-		filePath := "./src/public/imgs/users/" + user.Username + pic.Filename
-		filePath1 := "/imgs/users/" + user.Username + pic.Filename
-		// Destination
-		dst, err4 := os.Create(filePath)
-		if err4 != nil {
-			httperror := httperrors.NewBadRequestError("the Directory mess")
-			return c.JSON(httperror.Code(), err4.Error())
-		}
-		defer dst.Close()
-		// Copy
-		if _, err = io.Copy(dst, src); err != nil {
-			if err2 != nil {
-				httperror := httperrors.NewBadRequestError("error filling")
-				return c.JSON(httperror.Code(), httperror.Message())
-			}
-		}
-
-		//resize the image and replace the old one
-		imagery.Imageryrepository.Imagetype(filePath, filePath, 400, 500)
-		user.Picture = filePath1
-		_, err1 := controller.service.Update(code, user)
-		if err1 != nil {
-			return c.JSON(err1.Code(), err1.Message())
-		}
-		if _, err = io.Copy(dst, src); err != nil {
-			if err2 != nil {
-				httperror := httperrors.NewBadRequestError("error filling")
-				return c.JSON(httperror.Code(), httperror.Message())
-			}
-		}
-		return c.JSON(http.StatusCreated, "user created succesifully")
+	//    fmt.Println(pic.Filename)
+	if err2 != nil {
+		httperror := httperrors.NewBadRequestError("Invalid picture")
+		return c.JSON(httperror.Code(), err2.Error())
 	}
-	_, problem := controller.service.Update(code, user)
+	filepath1, errs := controller.ProcessImage(pic)
+	if errs != nil {
+		return c.JSON(errs.Code(), errs.Message())
+	}
+	user.Picture = filepath1
+	problem := controller.service.Update(code, user)
 	if problem != nil {
 		return c.JSON(problem.Code(), problem.Message())
 	}
 	return c.JSON(http.StatusCreated, "Updated successifuly")
+}
+
+// Update admin godoc
+// @Summary Update a user Admin
+// @Description Update a user item
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param        code   query     string  false  "code"
+// @Success 200 {object} User
+// @Failure 400 {object} support.HttpError
+// @Router /api/admin/update/:code [put]
+func (controller userController) UpdateAdmin(c echo.Context) error {
+
+	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>> step1")
+	code := c.Param("code")
+	status := c.FormValue("status")
+	feat, err := strconv.ParseBool(status)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, "Unable to parse the status!")
+	}
+	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>", code, feat)
+	problem := controller.service.UpdateAdmin(code, feat)
+	if problem != nil {
+		return c.JSON(problem.Code(), problem.Message())
+	}
+	return c.JSON(http.StatusOK, "updated succesifully")
 }
 
 // Delete godoc
@@ -368,4 +319,33 @@ func (controller userController) Delete(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, success)
 
+}
+func (controller userController) ProcessImage(pic *multipart.FileHeader) (string, httperrors.HttpErr) {
+	src, err := pic.Open()
+	if err != nil {
+		return "", httperrors.NewBadRequestError("the picture is corrupted")
+	}
+	defer src.Close()
+	// filePath := "./public/imgs/blogs/"
+	filePath := "./src/public/imgs/users/" + pic.Filename
+	filePath1 := "/imgs/users/" + pic.Filename
+	// Destination
+	dst, err4 := os.Create(filePath)
+	if err4 != nil {
+		return "", httperrors.NewBadRequestError("the Directory mess")
+	}
+	defer dst.Close()
+	// Copy
+	if _, err = io.Copy(dst, src); err != nil {
+		if err != nil {
+			return "", httperrors.NewBadRequestError("error filling")
+		}
+	}
+	imagery.Imageryrepository.Imagetype(filePath, filePath, 300, 500)
+	if _, err = io.Copy(dst, src); err != nil {
+		if err != nil {
+			return "", httperrors.NewBadRequestError("error saving the file")
+		}
+	}
+	return filePath1, nil
 }

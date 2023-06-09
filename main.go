@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/myrachanto/demyst/src/routes"
+	"github.com/myrachanto/sports/src/routes"
 )
 
 func init() {

@@ -4,16 +4,15 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/myrachanto/demyst/src/support"
 	httperrors "github.com/myrachanto/erroring"
+	"github.com/myrachanto/sports/src/support"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
 	ID        primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Firstname string             `json:"firstname,omitempty"`
-	Lastname  string             `json:"lastname,omitempty"`
+	Fullname  string             `json:"fullname,omitempty"`
 	Username  string             `json:"username,omitempty"`
 	Birthday  string             `json:"birthday,omitempty"`
 	Address   string             `json:"address,omitempty"`
@@ -23,6 +22,7 @@ type User struct {
 	Usercode  string             `json:"usercode,omitempty"`
 	Picture   string             `json:"picture,omitempty"`
 	UserAgent string             `json:"user_agent,omitempty"`
+	Admin     bool               `json:"admin,omitempty"`
 	Base      support.Base       `json:"base,omitempty"`
 }
 type LoginUser struct {
@@ -35,6 +35,7 @@ type Auth struct {
 	Usercode            string    `json:"usercode,omitempty"`
 	UserName            string    `json:"username,omitempty"`
 	Picture             string    `json:"picture,omitempty"`
+	Admin               bool      `json:"admin,omitempty"`
 	Token               string    `bson:"token" json:"token,omitempty"`
 	TokenExpires        time.Time `json:"token_expires,omitempty"`
 	RefleshToken        string    `json:"reflesh_token,omitempty"`
@@ -53,6 +54,13 @@ type Session struct {
 	IsBlocked    bool               `json:"is_blocked,omitempty"`
 	ExpiresAt    time.Time          `json:"expires_at,omitempty"`
 	Base         support.Base       `json:"base,omitempty"`
+}
+
+type Results struct {
+	Data        []*User `json:"results"`
+	Total       int     `json:"total"`
+	Pages       int     `json:"pages"`
+	CurrentPage int     `json:"currentpage"`
 }
 type Base struct {
 	Created_At time.Time  `bson:"created_at"`
@@ -119,14 +127,8 @@ func (user LoginUser) Compare(p1, p2 string) bool {
 	return err == nil
 }
 func (u User) Validate() httperrors.HttpErr {
-	if u.Firstname == "" {
-		return httperrors.NewBadRequestError("Firstname should not be empty")
-	}
-	if u.Lastname == "" {
-		return httperrors.NewBadRequestError("Lastname should not be empty")
-	}
-	if u.Address == "" {
-		return httperrors.NewBadRequestError("Address should not be empty")
+	if u.Fullname == "" {
+		return httperrors.NewBadRequestError("FullName should not be empty")
 	}
 	if u.Email == "" {
 		return httperrors.NewBadRequestError("Email should not be empty")

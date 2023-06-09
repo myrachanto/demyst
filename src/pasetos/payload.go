@@ -17,15 +17,16 @@ type Payload struct {
 	Code      string    `json:"code"`
 	Username  string    `json:"username"`
 	Email     string    `json:"email"`
-	Admin     string    `json:"admin"`
+	Admin     bool      `json:"admin"`
 	IssuedAt  time.Time `json:"issued_at"`
 	ExpiredAt time.Time `json:"expired_at"`
 }
 type Data struct {
-	Code      string `json:"code"`
-	Usercode  string `json:"usercode"`
-	Username  string `json:"username"`
-	Email     string `json:"email"`
+	Code     string `json:"code"`
+	Usercode string `json:"usercode"`
+	Username string `json:"username"`
+	Admin    bool   `json:"admin"`
+	Email    string `json:"email"`
 }
 
 func NewPayload(data *Data, duration time.Duration) (*Payload, httperrors.HttpErr) {
@@ -33,11 +34,13 @@ func NewPayload(data *Data, duration time.Duration) (*Payload, httperrors.HttpEr
 	if err != nil {
 		return nil, httperrors.NewBadRequestError(fmt.Sprintf("error with uuid generation, %d", err))
 	}
+	// fmt.Println("paseto setting ==============", data)
 	return &Payload{
 		IDs:       tokenid,
 		Username:  data.Username,
 		Email:     data.Email,
 		Code:      data.Code,
+		Admin:     data.Admin,
 		IssuedAt:  time.Now(),
 		ExpiredAt: time.Now().Add(duration),
 	}, nil

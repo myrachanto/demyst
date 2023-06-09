@@ -6,12 +6,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/myrachanto/demyst/src/db"
-	"github.com/myrachanto/demyst/src/pasetos"
-	"github.com/myrachanto/demyst/src/support"
 	httperrors "github.com/myrachanto/erroring"
+	"github.com/myrachanto/sports/src/db"
+	"github.com/myrachanto/sports/src/pasetos"
+	"github.com/myrachanto/sports/src/support"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // Userrepository repository
@@ -46,13 +47,14 @@ type UserrepoInterface interface {
 	RenewAccessToken(renewAccesstoken string) (*Auth, httperrors.HttpErr)
 	Logout(token string) (string, httperrors.HttpErr)
 	GetOne(id string) (*User, httperrors.HttpErr)
-	GetAll(string) ([]*User, httperrors.HttpErr)
+	GetAll(support.Paginator) (*Results, httperrors.HttpErr)
 	Forgot(email string) (string, string, httperrors.HttpErr)
 	Delete(id string) (string, httperrors.HttpErr)
-	Update(code string, user *User) (*User, httperrors.HttpErr)
+	Update(code string, user *User) httperrors.HttpErr
 	PasswordUpdate(oldpassword, email, newpassword string) (string, string, httperrors.HttpErr)
 	PasswordReset(email, newpassword string) (string, httperrors.HttpErr)
 	Count() (float64, httperrors.HttpErr)
+	UpdateAdmin(code string, status bool) httperrors.HttpErr
 }
 type userrepository struct{}
 
@@ -77,6 +79,14 @@ func (r *userrepository) Create(user *User) (*User, httperrors.HttpErr) {
 	if errs != nil {
 		return nil, errs
 	}
+	count, errd := r.Count()
+	if errd != nil {
+		return nil, errd
+	}
+	if count < 3 {
+		user.Admin = true
+	}
+
 	user.Usercode = code
 	user.Base.Updated_At = time.Now()
 	user.Base.Created_At = time.Now()
@@ -129,9 +139,11 @@ func (r *userrepository) Login(user *LoginUser) (*Auth, httperrors.HttpErr) {
 	data := &pasetos.Data{
 		Code:     tokencode,
 		Usercode: auser.Usercode,
+		Admin:    auser.Admin,
 		Username: auser.Username,
 		Email:    auser.Email,
 	}
+	// fmt.Println("---------------------", data)
 	tokenString, payload, errs := maker.CreateToken(data, time.Hour*5)
 	if errs != nil {
 		return nil, errs
@@ -155,7 +167,7 @@ func (r *userrepository) Login(user *LoginUser) (*Auth, httperrors.HttpErr) {
 	if errs != nil {
 		return nil, errs
 	}
-	auths := &Auth{Usercode: auser.Usercode, Picture: auser.Picture, UserName: auser.Username, Token: tokenString, RefleshToken: RefleshToken, SessionCode: sessiond.Code, TokenExpires: payload.ExpiredAt, RefleshTokenExpires: sessiond.ExpiresAt}
+	auths := &Auth{Usercode: auser.Usercode, Picture: auser.Picture, UserName: auser.Username, Admin: auser.Admin, Token: tokenString, RefleshToken: RefleshToken, SessionCode: sessiond.Code, TokenExpires: payload.ExpiredAt, RefleshTokenExpires: sessiond.ExpiresAt}
 	return auths, nil
 }
 
@@ -226,23 +238,22 @@ func (r *userrepository) GetOne(code string) (user *User, errors httperrors.Http
 	}
 	return user, nil
 }
-func (r *userrepository) GetAll(search string) ([]*User, httperrors.HttpErr) {
+func (r *userrepository) GetAll(search support.Paginator) (*Results, httperrors.HttpErr) {
 	collection := db.Mongodb.Collection("user")
 	results := []*User{}
-	fmt.Println(search)
-	if search != "" {
-		// 	filter := bson.D{
-		// 		{"name", primitive.Regex{Pattern: search, Options: "i"}},
-		// }
+	skipNum := (search.Page - 1) * search.Pagesize
+	findOptions := options.Find()
+	findOptions.SetLimit(int64(search.Pagesize))
+	findOptions.SetSkip(int64(skipNum))
+	findOptions.SetSort(bson.D{{"fullname", -1}})
+	if search.Search != "" {
 		filter := bson.D{
 			{"$or", bson.A{
-				bson.D{{"lastname", primitive.Regex{Pattern: search, Options: "i"}}},
-				bson.D{{"username", primitive.Regex{Pattern: search, Options: "i"}}},
-				bson.D{{"email", primitive.Regex{Pattern: search, Options: "i"}}},
+				bson.D{{"fullname", primitive.Regex{Pattern: search.Search, Options: "i"}}},
 			}},
 		}
 		// fmt.Println(filter)
-		cursor, err := collection.Find(ctx, filter)
+		cursor, err := collection.Find(ctx, filter, findOptions)
 		fmt.Println(cursor)
 		if err != nil {
 			return nil, httperrors.NewNotFoundError("No records found!")
@@ -250,47 +261,79 @@ func (r *userrepository) GetAll(search string) ([]*User, httperrors.HttpErr) {
 		if err = cursor.All(ctx, &results); err != nil {
 			return nil, httperrors.NewNotFoundError("Error decoding!")
 		}
-		fmt.Println(results)
-		return results, nil
+		return &Results{
+			Data:  results,
+			Total: len(results),
+		}, nil
 	} else {
-		cursor, err := collection.Find(ctx, bson.M{})
+		cursor, err := collection.Find(ctx, bson.M{}, findOptions)
 		if err != nil {
 			return nil, httperrors.NewNotFoundError("No records found!")
 		}
 		if err = cursor.All(ctx, &results); err != nil {
 			return nil, httperrors.NewNotFoundError("Error decoding!")
 		}
-		return results, nil
+		count, errd := r.Count()
+		if errd != nil {
+			return nil, errd
+		}
+		return &Results{
+			Data:  results,
+			Total: int(count),
+		}, nil
 	}
 
 }
+func (r *userrepository) UpdateAdmin(code string, status bool) httperrors.HttpErr {
+	var n User
 
-func (r *userrepository) Update(code string, user *User) (*User, httperrors.HttpErr) {
+	collection := db.Mongodb.Collection("user")
+
+	filter := bson.D{
+		{"$and", bson.A{
+			bson.D{{"usercode", code}},
+		}},
+	}
+	err := collection.FindOne(ctx, filter).Decode(&n)
+	if err != nil {
+		return httperrors.NewBadRequestError(fmt.Sprintf("Could not find resource with this id, %d", err))
+	}
+	_, errs := collection.UpdateOne(
+		ctx,
+		filter,
+		bson.D{
+			{"$set", bson.D{{"admin", status}}},
+		},
+	)
+	if errs != nil {
+		return httperrors.NewNotFoundError("Error updating!")
+	}
+	return nil
+}
+
+func (r *userrepository) Update(code string, user *User) httperrors.HttpErr {
 	stringresults := httperrors.ValidStringNotEmpty(code)
 	if stringresults.Noerror() {
-		return nil, stringresults
+		return stringresults
 	}
 	uuser := &User{}
 
-	ok := user.ValidateEmail(user.Email)
-	if !ok {
-		return nil, httperrors.NewNotFoundError("Your email format is wrong!")
-	}
-	fmt.Println(code)
+	// ok := user.ValidateEmail(user.Email)
+	// if !ok {
+	// 	return httperrors.NewNotFoundError("Your email format is wrong!")
+	// }
+	// fmt.Println(code)
 	user.Base.Updated_At = time.Now()
 	collection := db.Mongodb.Collection("user")
-	filter := bson.M{"code": code}
+	filter := bson.M{"usercode": code}
 	err := collection.FindOne(ctx, filter).Decode(&uuser)
 	if err != nil {
-		return nil, httperrors.NewBadRequestError(fmt.Sprintf("Could not find resource with this id, %d", err))
+		return httperrors.NewBadRequestError(fmt.Sprintf("Could not find resource with this id, %d", err))
 	}
 	fmt.Println("-------------------step 1")
 
-	if user.Firstname == "" {
-		user.Firstname = uuser.Firstname
-	}
-	if user.Lastname == "" {
-		user.Lastname = uuser.Lastname
+	if user.Fullname == "" {
+		user.Fullname = uuser.Fullname
 	}
 	if user.Username == "" {
 		user.Username = uuser.Username
@@ -307,21 +350,21 @@ func (r *userrepository) Update(code string, user *User) (*User, httperrors.Http
 	if user.Email == "" {
 		user.Email = uuser.Email
 	}
+	if user.Password == "" {
+		user.Password = uuser.Password
+	}
 	if user.Usercode == "" {
 		user.Usercode = uuser.Usercode
 	}
+	user.Admin = uuser.Admin
+	user.Base.Created_At = uuser.Base.Created_At
+	user.Base.Updated_At = time.Now()
 	update := bson.M{"$set": user}
-	fmt.Println("-------------------step 2")
 	_, errs := collection.UpdateOne(ctx, filter, update)
 	if errs != nil {
-		return nil, httperrors.NewNotFoundError("Error updating!")
+		return httperrors.NewNotFoundError("Error updating!")
 	}
-	fmt.Println("-------------------step 3")
-	u, e := r.getuno(user.Usercode)
-	if e != nil {
-		return nil, httperrors.NewNotFoundError("that email exist in the our system!")
-	}
-	return u, nil
+	return nil
 }
 
 func (r *userrepository) PasswordUpdate(oldpassword, email, newpassword string) (string, string, httperrors.HttpErr) {

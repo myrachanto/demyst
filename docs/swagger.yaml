@@ -1,4 +1,179 @@
 definitions:
+  category.Category:
+    properties:
+      _id:
+        type: string
+      base:
+        $ref: '#/definitions/support.Base'
+      code:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      title:
+        type: string
+    type: object
+  dashboard.ChartData:
+    properties:
+      all:
+        $ref: '#/definitions/dashboard.Module'
+      exclusive:
+        $ref: '#/definitions/dashboard.Module'
+      featured:
+        $ref: '#/definitions/dashboard.Module'
+      latest:
+        $ref: '#/definitions/dashboard.Module'
+      trending:
+        $ref: '#/definitions/dashboard.Module'
+    type: object
+  dashboard.Dashboard:
+    properties:
+      all:
+        $ref: '#/definitions/dashboard.Module'
+      chartdata:
+        $ref: '#/definitions/dashboard.ChartData'
+      exclusive:
+        $ref: '#/definitions/dashboard.Module'
+      featured:
+        $ref: '#/definitions/dashboard.Module'
+      linechart:
+        items:
+          $ref: '#/definitions/news.Weekly'
+        type: array
+      news:
+        items:
+          $ref: '#/definitions/news.News'
+        type: array
+      sportcount:
+        items:
+          $ref: '#/definitions/news.SportCount'
+        type: array
+      trending:
+        $ref: '#/definitions/dashboard.Module'
+    type: object
+  dashboard.Home:
+    properties:
+      exclusive:
+        items:
+          $ref: '#/definitions/news.News'
+        type: array
+      featured:
+        items:
+          $ref: '#/definitions/news.News'
+        type: array
+      latest:
+        items:
+          $ref: '#/definitions/news.News'
+        type: array
+      seo:
+        $ref: '#/definitions/pages.Page'
+      trending:
+        items:
+          $ref: '#/definitions/news.News'
+        type: array
+    type: object
+  dashboard.Module:
+    properties:
+      name:
+        type: string
+      total:
+        type: integer
+    type: object
+  news.Comment:
+    properties:
+      image:
+        type: string
+      message:
+        type: string
+      name:
+        type: string
+      time_ago:
+        type: string
+    type: object
+  news.News:
+    properties:
+      _id:
+        type: string
+      base:
+        $ref: '#/definitions/support.Base'
+      caption:
+        type: string
+      code:
+        type: string
+      comments:
+        items:
+          $ref: '#/definitions/news.Comment'
+        type: array
+      content:
+        type: string
+      exclusive:
+        type: boolean
+      featured:
+        type: boolean
+      meta:
+        type: string
+      name:
+        type: string
+      picture:
+        type: string
+      sections:
+        items:
+          $ref: '#/definitions/news.Section'
+        type: array
+      sport:
+        type: string
+      time_ago:
+        type: string
+      title:
+        type: string
+      trending:
+        type: boolean
+      url:
+        type: string
+    type: object
+  news.Section:
+    properties:
+      content:
+        type: string
+      highlight:
+        type: boolean
+      image:
+        type: string
+      name:
+        type: string
+    type: object
+  news.SportCount:
+    properties:
+      count:
+        type: integer
+      sport:
+        type: string
+    type: object
+  news.Weekly:
+    properties:
+      count:
+        type: integer
+      id:
+        type: integer
+    type: object
+  pages.Page:
+    properties:
+      _id:
+        type: string
+      base:
+        $ref: '#/definitions/support.Base'
+      code:
+        type: string
+      content:
+        type: string
+      meta:
+        type: string
+      name:
+        type: string
+      title:
+        type: string
+    type: object
   support.Base:
     properties:
       created_At:
@@ -19,21 +194,36 @@ definitions:
       results:
         type: boolean
     type: object
+  tags.Tag:
+    properties:
+      _id:
+        type: string
+      base:
+        $ref: '#/definitions/support.Base'
+      code:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      title:
+        type: string
+    type: object
   users.User:
     properties:
       _id:
         type: string
       address:
         type: string
+      admin:
+        type: boolean
       base:
         $ref: '#/definitions/support.Base'
       birthday:
         type: string
       email:
         type: string
-      firstname:
-        type: string
-      lastname:
+      fullname:
         type: string
       password:
         type: string
@@ -51,6 +241,114 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/admin/update/:code:
+    put:
+      consumes:
+      - application/json
+      description: Update a user item
+      parameters:
+      - description: code
+        in: query
+        name: code
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/users.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Update a user Admin
+      tags:
+      - users
+  /api/categorys:
+    delete:
+      consumes:
+      - application/json
+      description: Delte item
+      parameters:
+      - description: code
+        in: query
+        name: code
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/category.Category'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Delte a category
+      tags:
+      - categorys
+    get:
+      consumes:
+      - application/json
+      description: Get item
+      parameters:
+      - description: code
+        in: query
+        name: code
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/category.Category'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Get a category
+      tags:
+      - categorys
+    put:
+      consumes:
+      - application/json
+      description: Update an new category item
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/category.Category'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Update an category
+      tags:
+      - categorys
+  /api/dashboard:
+    get:
+      consumes:
+      - application/json
+      description: Get  Dashboard
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dashboard.Dashboard'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Get  Dashboard
+      tags:
+      - Dashboard
   /api/logout:
     post:
       consumes:
@@ -70,6 +368,237 @@ paths:
       summary: logout a user
       tags:
       - users
+  /api/news:
+    delete:
+      consumes:
+      - application/json
+      description: Delte item
+      parameters:
+      - description: code
+        in: query
+        name: code
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/news.News'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Delete a news
+      tags:
+      - news
+    get:
+      consumes:
+      - application/json
+      description: Get item
+      parameters:
+      - description: code
+        in: query
+        name: code
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/news.News'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Get a news
+      tags:
+      - news
+    post:
+      consumes:
+      - application/json
+      description: Create a new news item
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/news.News'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Create a news
+      tags:
+      - news
+    put:
+      consumes:
+      - application/json
+      description: Update an new news item
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/news.News'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Update an news
+      tags:
+      - news
+  /api/pages:
+    delete:
+      consumes:
+      - application/json
+      description: Delte item
+      parameters:
+      - description: code
+        in: query
+        name: code
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pages.Page'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Delte a page
+      tags:
+      - pages
+    get:
+      consumes:
+      - application/json
+      description: Get item
+      parameters:
+      - description: code
+        in: query
+        name: code
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/pages.Page'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Get a page
+      tags:
+      - pages
+    post:
+      consumes:
+      - application/json
+      description: Create a new page item
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/pages.Page'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Create a page
+      tags:
+      - pages
+    put:
+      consumes:
+      - application/json
+      description: Update an new page item
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pages.Page'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Update an page
+      tags:
+      - pages
+  /api/tags:
+    delete:
+      consumes:
+      - application/json
+      description: Delte item
+      parameters:
+      - description: code
+        in: query
+        name: code
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tags.Tag'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Delte a tag
+      tags:
+      - tags
+    get:
+      consumes:
+      - application/json
+      description: Get item
+      parameters:
+      - description: code
+        in: query
+        name: code
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/tags.Tag'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Get a tag
+      tags:
+      - tags
+    put:
+      consumes:
+      - application/json
+      description: Update an new tag item
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tags.Tag'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Update an tag
+      tags:
+      - tags
   /api/users:
     delete:
       consumes:
@@ -117,24 +646,6 @@ paths:
       summary: Get a user
       tags:
       - users
-    post:
-      consumes:
-      - application/json
-      description: Create a new user item
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/users.User'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/support.HttpError'
-      summary: Create a user
-      tags:
-      - users
     put:
       consumes:
       - application/json
@@ -177,6 +688,25 @@ paths:
       summary: Reset a user
       tags:
       - users
+  /forgot:
+    post:
+      consumes:
+      - application/json
+      description: Forgot user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/users.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Forgot a user
+      tags:
+      - users
   /front/forgot:
     post:
       consumes:
@@ -196,7 +726,42 @@ paths:
       summary: Forgot a user
       tags:
       - users
-  /front/login:
+  /health:
+    get:
+      consumes:
+      - '*/*'
+      description: get the Health status of server.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Show the Health status of server.
+      tags:
+      - Health Status
+  /home:
+    get:
+      consumes:
+      - application/json
+      description: Get  Home
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dashboard.Home'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Get  Home
+      tags:
+      - Home
+  /login:
     post:
       consumes:
       - application/json
@@ -215,20 +780,47 @@ paths:
       summary: Login a user
       tags:
       - users
-  /health:
+  /news:
     get:
       consumes:
-      - '*/*'
-      description: get the Health status of server.
+      - application/json
+      description: Get  BY Category item
+      parameters:
+      - description: code
+        in: query
+        name: code
+        type: string
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            additionalProperties: true
-            type: object
-      summary: Show the Health status of server.
+            $ref: '#/definitions/news.News'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Get  BY Category a news
       tags:
-      - Health Status
+      - news
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user item
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/users.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/support.HttpError'
+      summary: Create a user
+      tags:
+      - users
 swagger: "2.0"

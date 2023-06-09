@@ -8,13 +8,14 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/myrachanto/demyst/src/pasetos"
+	"github.com/myrachanto/sports/src/pasetos"
 	"github.com/stretchr/testify/require"
 )
 
 var data = &pasetos.Data{
 	Username: "user1",
 	Email:    "example@gmail.com",
+	Admin:    true,
 }
 
 func addAuthorization(t *testing.T, request *http.Request, Authorizationtype string, data *pasetos.Data, duration time.Duration) {

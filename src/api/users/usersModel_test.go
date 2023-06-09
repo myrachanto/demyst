@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var u User = User{Firstname: "mark", Lastname: "white", Birthday: "12/12/1994", Phone: "232453366674", Address: "whitemores street", Password: "123456sdf", Email: "email@example.com"}
-var jsondata = `{"firstname":"jane","lastame":"Doe","username":"doe","Usercode": "Doe345","Phone":"1234567","Email":   "email@example.com","Password": "1234567","Address":"psd 456 king view"}`
+var u User = User{Fullname: "John Smith", Birthday: "12/12/1994", Phone: "232453366674", Address: "whitemores street", Password: "123456sdf", Email: "email@example.com"}
+var jsondata = `{"fullname":"jane","username":"doe","Usercode": "Doe345","Phone":"1234567","Email":   "email@example.com","Password": "1234567","Address":"psd 456 king view"}`
 
 func TestValidateUserInputRequiredFields(t *testing.T) {
 	testcases := []struct {
@@ -19,9 +19,8 @@ func TestValidateUserInputRequiredFields(t *testing.T) {
 		code int
 	}{
 		{name: "ok", user: u, err: ""},
-		{name: "Empty Firstname", user: User{Firstname: "", Lastname: "white", Birthday: "12/12/1994", Phone: "232453366674", Address: "whitemores street", Password: "123456sdf", Email: "email@example.com"}, err: "Firstname should not be empty", code: 400},
-		{name: "Empty Lastname", user: User{Firstname: "mark", Lastname: "", Birthday: "12/12/1994", Phone: "232453366674", Address: "whitemores street", Password: "123456sdf", Email: "email@example.com"}, err: "Lastname should not be empty", code: 400},
-		{name: "Empty Address", user: User{Firstname: "mark", Lastname: "white", Birthday: "12/12/1994", Phone: "232453366674", Address: "", Password: "123456sdf", Email: "email@example.com"}, err: "Address should not be empty", code: 400},
+		{name: "Empty Fullname", user: User{Fullname: "", Birthday: "12/12/1994", Phone: "232453366674", Address: "whitemores street", Password: "123456sdf", Email: "email@example.com"}, err: "Firstname should not be empty", code: 400},
+		{name: "Empty Address", user: User{Fullname: "mark", Birthday: "12/12/1994", Phone: "232453366674", Address: "", Password: "123456sdf", Email: "email@example.com"}, err: "Address should not be empty", code: 400},
 	}
 	for _, test := range testcases {
 		t.Run(test.name, func(t *testing.T) {

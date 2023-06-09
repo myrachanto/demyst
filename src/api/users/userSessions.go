@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/myrachanto/demyst/src/db"
-	"github.com/myrachanto/demyst/src/support"
+	"github.com/myrachanto/sports/src/db"
+	"github.com/myrachanto/sports/src/support"
 	httperrors "github.com/myrachanto/erroring"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"

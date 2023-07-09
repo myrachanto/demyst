@@ -20,6 +20,7 @@ type UserServiceInterface interface {
 	Forgot(token string) (string, httperrors.HttpErr)
 	PasswordReset(email, password string) (string, httperrors.HttpErr)
 	UpdateAdmin(code string, status bool) httperrors.HttpErr
+	UpdateAuditor(code string, status bool) httperrors.HttpErr
 	Update(code string, user *User) httperrors.HttpErr
 }
 type userService struct {
@@ -61,6 +62,9 @@ func (service *userService) PasswordReset(email, password string) (string, httpe
 
 func (service *userService) UpdateAdmin(code string, status bool) httperrors.HttpErr {
 	return service.repo.UpdateAdmin(code, status)
+}
+func (service *userService) UpdateAuditor(code string, status bool) httperrors.HttpErr {
+	return service.repo.UpdateAuditor(code, status)
 }
 func (service *userService) UpdateUser(code string, user *User) httperrors.HttpErr {
 	return service.repo.Update(code, user)

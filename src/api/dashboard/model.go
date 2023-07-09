@@ -27,6 +27,7 @@ type ChartData struct {
 	All       Module `json:"all"`
 }
 type Home struct {
+	All       []*news.News `json:"all,omitempty"`
 	Latest    []*news.News `json:"latest,omitempty"`
 	Trending  []*news.News `json:"trending,omitempty"`
 	Exclusive []*news.News `json:"exclusive,omitempty"`

@@ -8,46 +8,48 @@ import (
 )
 
 type News struct {
-	ID        primitive.ObjectID         `json:"_id,omitempty" bson:"_id,omitempty"`
-	Name      string                     `json:"name,omitempty"`
-	Title     string                     `json:"title,omitempty"`
-	Caption   string                     `json:"caption,omitempty"`
-	Meta      string                     `json:"meta,omitempty"`
-	Url       string                     `json:"url,omitempty"`
-	Sport     string                     `json:"sport,omitempty"`
-	Featured  bool                       `json:"featured,omitempty"`
-	Exclusive bool                       `json:"exclusive,omitempty"`
-	Trending  bool                       `json:"trending,omitempty"`
-	Content   string                     `json:"content,omitempty"`
-	Sections  []newssections.NewsSection `json:"sections,omitempty"`
-	Picture   string                     `json:"picture,omitempty"`
-	Code      string                     `json:"code,omitempty"`
-	TimeAgo   string                     `json:"time_ago,omitempty"`
-	Author    string                     `json:"author,omitempty"`
-	Credit    string                     `json:"credit,omitempty"`
-	Comments  []Comment                  `json:"comments,omitempty"`
-	Base      support.Base               `json:"base,omitempty"`
+	ID            primitive.ObjectID          `json:"_id,omitempty" bson:"_id,omitempty"`
+	Name          string                      `json:"name"`
+	Title         string                      `json:"title"`
+	Caption       string                      `json:"caption"`
+	Meta          string                      `json:"meta"`
+	Url           string                      `json:"url"`
+	Sport         string                      `json:"sport"`
+	Featured      bool                        `json:"featured"`
+	Exclusive     bool                        `json:"exclusive"`
+	Trending      bool                        `json:"trending"`
+	Content       string                      `json:"content"`
+	SectionsCodes []string                    `json:"sectionscodes"`
+	Sections      []*newssections.NewsSection `bson:"-" json:"sections"`
+	Picture       string                      `json:"picture"`
+	Code          string                      `json:"code"`
+	TimeAgo       string                      `json:"time_ago"`
+	Author        string                      `json:"author"`
+	Credit        string                      `json:"credit"`
+	PhotoCredit   string                      `json:"photocredit"`
+	Comments      []Comment                   `json:"comments"`
+	Base          support.Base                `json:"base"`
 }
 
-type NewsB struct {
-	ID        primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Name      string             `json:"name"`
-	Title     string             `json:"title"`
-	Caption   string             `json:"caption"`
-	Meta      string             `json:"meta"`
-	Url       string             `json:"url"`
-	Sport     string             `json:"sport"`
-	Featured  bool               `json:"featured"`
-	Exclusive bool               `json:"exclusive"`
-	Trending  bool               `json:"trending"`
-	Content   string             `json:"content"`
-	Sections  []Coder            `json:"sections"`
-	Picture   string             `json:"picture"`
-	Code      string             `json:"code"`
-	TimeAgo   string             `json:"time_ago"`
-	Comments  []Comment          `json:"comments"`
-	Base      support.Base       `json:"base"`
-}
+//	type NewsB struct {
+//		ID        primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+//		Name      string             `json:"name"`
+//		Title     string             `json:"title"`
+//		Caption   string             `json:"caption"`
+//		Meta      string             `json:"meta"`
+//		Url       string             `json:"url"`
+//		Sport     string             `json:"sport"`
+//		Featured  bool               `json:"featured"`
+//		Exclusive bool               `json:"exclusive"`
+//		Trending  bool               `json:"trending"`
+//		Content   string             `json:"content"`
+//		Sections  []Coder            `json:"sections"`
+//		Picture   string             `json:"picture"`
+//		Code      string             `json:"code"`
+//		TimeAgo   string             `json:"time_ago"`
+//		Comments  []Comment          `json:"comments"`
+//		Base      support.Base       `json:"base"`
+//	}
 type ByNews struct {
 	News     *News   `json:"news"`
 	Trending []*News `json:"trending"`

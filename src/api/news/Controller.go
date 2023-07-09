@@ -68,6 +68,7 @@ func (controller newsController) Create(c echo.Context) error {
 	news.Sport = c.FormValue("category")
 	news.Author = c.FormValue("author")
 	news.Credit = c.FormValue("credit")
+	news.PhotoCredit = c.FormValue("photocredit")
 	featured, e := strconv.ParseBool(c.FormValue("featured"))
 	if e != nil {
 		return c.JSON(http.StatusBadRequest, "could not parse featured")
@@ -125,54 +126,22 @@ func (controller newsController) Create(c echo.Context) error {
 	}
 	if len(files) > 0 {
 		for _, file := range files {
-			// Source
-			src, err := file.Open()
-			if err != nil {
-				httperror := httperrors.NewBadRequestError("Invalid picture")
-				return c.JSON(httperror.Code(), err.Error())
+			filepath1, errs := controller.ProcessImage(file)
+			if errs != nil {
+				return c.JSON(errs.Code(), errs.Message())
 			}
-			defer src.Close()
-			filePath := "./src/public/imgs/news/" + file.Filename
-			dst, err := os.Create(filePath)
-			if err != nil {
-				return err
-			}
-			defer dst.Close()
-
-			// fmt.Println("------------------step4", files)
-			// Copy
-			if _, err = io.Copy(dst, src); err != nil {
-				return err
-			}
-
-			sectname := strings.Split(file.Filename, "_")[1]
-			// Destination
-			Original_Path := strings.Split(file.Filename, ".")
-			name1 := Original_Path[len(Original_Path)-1]
-			nameSplit := strings.Join(strings.Split(news.Name, " "), "-")
-			// imagename := nameSplit + "." + name1
-
-			imagename := fmt.Sprintf("%s.%s", nameSplit, name1)
-			imagery.Imageryrepository.Imagetype(filePath, filePath, 500, 800)
-			filepath3 := "./src/public/imgs/news/" + imagename
-			support.RenameImage(filePath, filepath3)
-			filepath5 := "/imgs/news/" + imagename
+			sectnames := strings.Split(file.Filename, "_")
+			sectname := sectnames[1]
 			for _, g := range secs {
-				// fmt.Println("------------------step8", g.Name, g.Content, sectname)
 				if g.Name == sectname {
-					g.Image = filepath5
-					// fmt.Println("------------------step8", g.Image)
+					g.Image = filepath1
 				}
 			}
 		}
 	}
-	// fmt.Println("------------------step11", secs)
-	// fmt.Println("./////////////////step5")
 	for _, g := range secs {
-		news.Sections = append(news.Sections, *g)
+		news.Sections = append(news.Sections, g)
 	}
-	// news.Sections = secs
-	// fmt.Println("------------------step6")
 	_, err1 := controller.service.Create(news)
 	if err1 != nil {
 		return c.JSON(err1.Code(), err1.Message())
@@ -303,27 +272,11 @@ func (controller newsController) Update(c echo.Context) error {
 	news.Sport = c.FormValue("category")
 	news.Author = c.FormValue("author")
 	news.Credit = c.FormValue("credit")
-	// featured, e := strconv.ParseBool(c.FormValue("featured"))
-	// if e != nil {
-	// 	return c.JSON(http.StatusBadRequest, "could not parse featured")
-	// }
-	// news.Featured = featured
-	// exclusive, e := strconv.ParseBool(c.FormValue("exclusive"))
-	// if e != nil {
-	// 	return c.JSON(http.StatusBadRequest, "could not parse exclusive")
-	// }
-	// news.Exclusive = exclusive
-	// trending, e := strconv.ParseBool(c.FormValue("trending"))
-	// if e != nil {
-	// 	return c.JSON(http.StatusBadRequest, "could not parse featured")
-	// }
-	// news.Trending = trending
-
-	// fmt.Println("------------------step2")
+	news.PhotoCredit = c.FormValue("photocredit")
 	secs := []*newssections.NewsSection{}
 	sections := c.FormValue("sections")
 
-	// fmt.Println("------------------step2a", sections)
+	fmt.Println("================>>>>>>++++++++++++++++ step 1", news.Credit)
 	if string(sections) != "" {
 
 		var producti []map[string]interface{}
@@ -332,21 +285,17 @@ func (controller newsController) Update(c echo.Context) error {
 			httperror := httperrors.NewBadRequestError("something went wrong unmarshalling products")
 			return c.JSON(httperror.Code(), err4.Error())
 		}
-		// fmt.Println("./////////////////step4")
-
 		for _, v := range producti {
 			var sec newssections.NewsSection
 			sec.Name = fmt.Sprintf("%s", v["name"])
 			sec.Content = fmt.Sprintf("%s", v["content"])
+			sec.Code = fmt.Sprintf("%s", v["code"])
 			sec.Image = ""
 			secs = append(secs, &sec)
 		}
-		// fmt.Println("./////////////////", ts)
 	}
-	// fmt.Println("------------------step3")
+	// fmt.Println("================>>>>>> step 2", sections)
 	pic, err2 := c.FormFile("picture")
-	//    fmt.Println(pic.Filename)
-	// fmt.Println("------------------step3a", err2)
 	if err2 == nil {
 		filepath1, errs := controller.ProcessImage(pic)
 		if errs != nil {
@@ -354,63 +303,32 @@ func (controller newsController) Update(c echo.Context) error {
 		}
 		news.Picture = filepath1
 	}
-
-	// fmt.Println("------------------step4")
 	form, err := c.MultipartForm()
 	if err != nil {
 		return err
 	}
 	files := form.File["pictures"]
 
-	// fmt.Println("------------------step5")
+	// fmt.Println("================>>>>>> step 4", len(files))
 	if len(files) > 0 {
 		for _, file := range files {
-			// Source
-			src, err := file.Open()
-			if err != nil {
-				httperror := httperrors.NewBadRequestError("Invalid picture")
-				return c.JSON(httperror.Code(), err.Error())
+			filepath1, errs := controller.ProcessImage(file)
+			if errs != nil {
+				return c.JSON(errs.Code(), errs.Message())
 			}
-			defer src.Close()
-			filePath := "./src/public/imgs/news/" + file.Filename
-			dst, err := os.Create(filePath)
-			if err != nil {
-				return err
-			}
-			defer dst.Close()
-
-			// fmt.Println("------------------step4", files)
-			// Copy
-			if _, err = io.Copy(dst, src); err != nil {
-				return err
-			}
-
-			sectname := strings.Split(file.Filename, "_")[1]
-			// Destination
-			Original_Path := strings.Split(file.Filename, ".")
-			name1 := Original_Path[len(Original_Path)-1]
-			nameSplit := strings.Join(strings.Split(news.Name, " "), "-")
-			// imagename := nameSplit + "." + name1
-
-			imagename := fmt.Sprintf("%s.%s", nameSplit, name1)
-			imagery.Imageryrepository.Imagetype(filePath, filePath, 500, 800)
-			filepath3 := "./src/public/imgs/news/" + imagename
-			support.RenameImage(filePath, filepath3)
-			filepath5 := "/imgs/news/" + imagename
+			sectnames := strings.Split(file.Filename, "_")
+			sectname := sectnames[1]
 			for _, g := range secs {
-				// fmt.Println("------------------step8", g.Name, g.Content, sectname)
 				if g.Name == sectname {
-					g.Image = filepath5
-					// fmt.Println("------------------step8", g.Image)
+					g.Image = filepath1
 				}
 			}
 		}
 	}
-	// fmt.Println("------------------step11", secs)
-	// fmt.Println("./////////////////step5")
 	for _, g := range secs {
-		news.Sections = append(news.Sections, *g)
+		news.Sections = append(news.Sections, g)
 	}
+	fmt.Println("================>>>>>> step 5", news, code)
 	_, err1 := controller.service.Update(code, news)
 	if err1 != nil {
 		return c.JSON(err1.Code(), err1.Message())

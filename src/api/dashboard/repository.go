@@ -71,7 +71,11 @@ func (r *dashboardrepository) HomeCms() (*Dashboard, httperrors.HttpErr) {
 	return &dash, nil
 }
 func (r *dashboardrepository) Index() (*Home, httperrors.HttpErr) {
-	allnews, err := news.Newsrepo.GetAll1()
+	allnews, err := news.Newsrepo.GetAll2(5)
+	if err != nil {
+		return nil, err
+	}
+	latest, err := news.Newsrepo.GetAll2(10)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +97,8 @@ func (r *dashboardrepository) Index() (*Home, httperrors.HttpErr) {
 	}
 
 	return &Home{
-		Latest:    allnews,
+		All:       allnews,
+		Latest:    latest,
 		Featured:  featured,
 		Exclusive: exclusive,
 		Trending:  trending,

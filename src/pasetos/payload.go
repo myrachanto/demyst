@@ -18,6 +18,7 @@ type Payload struct {
 	Username  string    `json:"username"`
 	Email     string    `json:"email"`
 	Admin     bool      `json:"admin"`
+	Auditor   bool      `json:"auditor"`
 	IssuedAt  time.Time `json:"issued_at"`
 	ExpiredAt time.Time `json:"expired_at"`
 }
@@ -26,6 +27,7 @@ type Data struct {
 	Usercode string `json:"usercode"`
 	Username string `json:"username"`
 	Admin    bool   `json:"admin"`
+	Auditor  bool   `json:"auditor"`
 	Email    string `json:"email"`
 }
 
@@ -41,6 +43,7 @@ func NewPayload(data *Data, duration time.Duration) (*Payload, httperrors.HttpEr
 		Email:     data.Email,
 		Code:      data.Code,
 		Admin:     data.Admin,
+		Auditor:   data.Auditor,
 		IssuedAt:  time.Now(),
 		ExpiredAt: time.Now().Add(duration),
 	}, nil

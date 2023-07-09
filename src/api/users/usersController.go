@@ -32,6 +32,7 @@ type UserControllerInterface interface {
 	PasswordReset(c echo.Context) error
 	Delete(c echo.Context) error
 	UpdateAdmin(c echo.Context) error
+	UpdateAuditor(c echo.Context) error
 }
 
 type userController struct {
@@ -295,6 +296,33 @@ func (controller userController) UpdateAdmin(c echo.Context) error {
 	}
 	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>", code, feat)
 	problem := controller.service.UpdateAdmin(code, feat)
+	if problem != nil {
+		return c.JSON(problem.Code(), problem.Message())
+	}
+	return c.JSON(http.StatusOK, "updated succesifully")
+}
+
+// Update Auditor godoc
+// @Summary Update a user Auditor
+// @Description Update a user Auditor item
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param        code   query     string  false  "code"
+// @Success 200 {object} User
+// @Failure 400 {object} support.HttpError
+// @Router /api/admin/update/:code [put]
+func (controller userController) UpdateAuditor(c echo.Context) error {
+
+	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>> step1")
+	code := c.Param("code")
+	status := c.FormValue("status")
+	feat, err := strconv.ParseBool(status)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, "Unable to parse the status!")
+	}
+	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>", code, feat)
+	problem := controller.service.UpdateAuditor(code, feat)
 	if problem != nil {
 		return c.JSON(problem.Code(), problem.Message())
 	}

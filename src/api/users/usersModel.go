@@ -23,6 +23,7 @@ type User struct {
 	Picture   string             `json:"picture,omitempty"`
 	UserAgent string             `json:"user_agent,omitempty"`
 	Admin     bool               `json:"admin,omitempty"`
+	Auditor   bool               `json:"auditor,omitempty"`
 	Base      support.Base       `json:"base,omitempty"`
 }
 type LoginUser struct {
@@ -36,6 +37,7 @@ type Auth struct {
 	UserName            string    `json:"username,omitempty"`
 	Picture             string    `json:"picture,omitempty"`
 	Admin               bool      `json:"admin,omitempty"`
+	Auditor             bool      `json:"auditor,omitempty"`
 	Token               string    `bson:"token" json:"token,omitempty"`
 	TokenExpires        time.Time `json:"token_expires,omitempty"`
 	RefleshToken        string    `json:"reflesh_token,omitempty"`
@@ -127,8 +129,8 @@ func (user LoginUser) Compare(p1, p2 string) bool {
 	return err == nil
 }
 func (u User) Validate() httperrors.HttpErr {
-	if u.Fullname == "" {
-		return httperrors.NewBadRequestError("FullName should not be empty")
+	if u.Username == "" {
+		return httperrors.NewBadRequestError("Username should not be empty")
 	}
 	if u.Email == "" {
 		return httperrors.NewBadRequestError("Email should not be empty")

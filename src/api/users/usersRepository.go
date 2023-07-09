@@ -55,6 +55,7 @@ type UserrepoInterface interface {
 	PasswordReset(email, newpassword string) (string, httperrors.HttpErr)
 	Count() (float64, httperrors.HttpErr)
 	UpdateAdmin(code string, status bool) httperrors.HttpErr
+	UpdateAuditor(code string, status bool) httperrors.HttpErr
 }
 type userrepository struct{}
 
@@ -140,6 +141,7 @@ func (r *userrepository) Login(user *LoginUser) (*Auth, httperrors.HttpErr) {
 		Code:     tokencode,
 		Usercode: auser.Usercode,
 		Admin:    auser.Admin,
+		Auditor:  auser.Auditor,
 		Username: auser.Username,
 		Email:    auser.Email,
 	}
@@ -303,6 +305,37 @@ func (r *userrepository) UpdateAdmin(code string, status bool) httperrors.HttpEr
 		filter,
 		bson.D{
 			{"$set", bson.D{{"admin", status}}},
+		},
+	)
+	if errs != nil {
+		return httperrors.NewNotFoundError("Error updating!")
+	}
+	errd := r.UpdateAuditor(code, status)
+	if errd != nil {
+		return errd
+	}
+	return nil
+}
+func (r *userrepository) UpdateAuditor(code string, status bool) httperrors.HttpErr {
+	var n User
+
+	collection := db.Mongodb.Collection("user")
+
+	filter := bson.D{
+		{"$and", bson.A{
+			bson.D{{"usercode", code}},
+		}},
+	}
+	err := collection.FindOne(ctx, filter).Decode(&n)
+	if err != nil {
+		return httperrors.NewBadRequestError(fmt.Sprintf("Could not find resource with this id, %d", err))
+	}
+	// fmt.Println("-------------------------auditor", status)
+	_, errs := collection.UpdateOne(
+		ctx,
+		filter,
+		bson.D{
+			{"$set", bson.D{{"auditor", status}}},
 		},
 	)
 	if errs != nil {

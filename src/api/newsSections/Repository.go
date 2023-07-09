@@ -42,6 +42,7 @@ func (r *newsSectionrepository) Create(section *NewsSection) (*NewsSection, http
 	section.Code = code
 	section.Base.Updated_At = time.Now()
 	section.Base.Created_At = time.Now()
+	r.EnsureRightData(section)
 	collection := db.Mongodb.Collection(database)
 	result1, errd := collection.InsertOne(ctx, &section)
 	if errd != nil {
@@ -96,6 +97,7 @@ func (r *newsSectionrepository) Update(code string, section *NewsSection) (strin
 		section.Highlight = ac.Highlight
 	}
 	section.Base.Updated_At = time.Now()
+	r.EnsureRightData(section)
 	update := bson.M{"$set": section}
 	_, errs := collection.UpdateOne(ctx, filter, update)
 	if errs != nil {
@@ -109,10 +111,19 @@ func (r newsSectionrepository) Delete(id string) (string, httperrors.HttpErr) {
 		return "", stringresults
 	}
 	collection := db.Mongodb.Collection(database)
-
+	// fmt.Println("stepper 1--------------------")
+	res, errs := r.getuno(id)
+	if errs != nil {
+		return "", errs
+	}
+	// fmt.Println("stepper 2--------------------", res)
+	go support.Clean.Cleaner(res.Image)
 	filter := bson.M{"code": id}
+	// fmt.Println("stepper 3--------------------", res)
 	ok, err := collection.DeleteOne(ctx, filter)
 	if ok == nil {
+
+		// fmt.Println("stepper 4 err--------------------", res)
 		return "", httperrors.NewNotFoundError(fmt.Sprintf("deletion of %d failed", err))
 	}
 	return "deleted successfully", nil
@@ -143,7 +154,7 @@ func (r newsSectionrepository) getuno(code string) (result *NewsSection, err htt
 		return nil, stringresults
 	}
 	collection := db.Mongodb.Collection(database)
-	filter := bson.M{"newscode": code}
+	filter := bson.M{"code": code}
 	err1 := collection.FindOne(ctx, filter).Decode(&result)
 	if err1 != nil {
 		return nil, httperrors.NewNotFoundError("no results found")
@@ -161,4 +172,11 @@ func (r newsSectionrepository) Count() (float64, httperrors.HttpErr) {
 	}
 	code := float64(count)
 	return code, nil
+}
+func (r newsSectionrepository) EnsureRightData(res *NewsSection) {
+	if res.Image != "" {
+		res.Content = ""
+	} else {
+		res.Image = ""
+	}
 }

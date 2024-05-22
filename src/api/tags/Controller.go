@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/myrachanto/sports/src/support"
+	"github.com/myrachanto/estate/src/support"
 )
 
 // tagController ...
@@ -18,6 +19,7 @@ type TagControllerInterface interface {
 	Create(c echo.Context) error
 	GetOne(c echo.Context) error
 	GetAll(c echo.Context) error
+	GetAll1(c echo.Context) error
 	Update(c echo.Context) error
 	Delete(c echo.Context) error
 }
@@ -48,7 +50,7 @@ func (controller tagController) Create(c echo.Context) error {
 
 	tag := &Tag{}
 	// fmt.Println("--------------------create")
-	tag.Name = c.FormValue("name")
+	tag.Name = strings.TrimSpace(c.FormValue("name"))
 	tag.Title = c.FormValue("title")
 	tag.Description = c.FormValue("description")
 	_, err1 := controller.service.Create(tag)
@@ -73,7 +75,7 @@ func (controller tagController) GetAll(c echo.Context) error {
 	ps := c.QueryParam("pagesize")
 	pn := c.QueryParam("pagenumber")
 	page, err := strconv.Atoi(pn)
-	// fmt.Println("----------------------sdfgghh")
+	fmt.Println("----------------------sdfgghh")
 	if err != nil {
 		fmt.Println("Invalid pagesize")
 		page = 1
@@ -85,6 +87,36 @@ func (controller tagController) GetAll(c echo.Context) error {
 	}
 	searcher := support.Paginator{Page: page, Pagesize: pagesize, Search: search}
 	tags, err3 := controller.service.GetAll(searcher)
+	if err3 != nil {
+		return c.JSON(err3.Code(), err3.Message())
+	}
+	return c.JSON(http.StatusOK, tags)
+}
+func (controller tagController) GetAll1(c echo.Context) error {
+
+	search := c.QueryParam("search")
+	orderby := c.QueryParam("orderby")
+	ps := c.QueryParam("pagesize")
+	pn := c.QueryParam("pagenumber")
+	page, err := strconv.Atoi(pn)
+	// fmt.Println("----------------------sdfgghh", ps)
+	if err != nil {
+		fmt.Println("Invalid pagesize")
+		page = 1
+	}
+	pagesize, err := strconv.Atoi(ps)
+	if err != nil {
+		fmt.Println("Invalid pagesize")
+		pagesize = 10
+	}
+	order, err := strconv.Atoi(c.QueryParam("order"))
+	if err != nil {
+		fmt.Println("Invalid pagesize")
+		order = 1
+	}
+	searcher := support.Paginator{Page: page, Pagesize: pagesize, Search: search, Orderby: orderby, Order: order}
+	// fmt.Println(">>>>>>>>>>>tag Bizname", Bizname)
+	tags, err3 := controller.service.GetAll1(searcher)
 	if err3 != nil {
 		return c.JSON(err3.Code(), err3.Message())
 	}
@@ -121,7 +153,7 @@ func (controller tagController) GetOne(c echo.Context) error {
 func (controller tagController) Update(c echo.Context) error {
 
 	tag := &Tag{}
-	tag.Name = c.FormValue("name")
+	tag.Name = strings.TrimSpace(c.FormValue("name"))
 	tag.Title = c.FormValue("title")
 	tag.Description = c.FormValue("description")
 	code := c.Param("code")
@@ -142,7 +174,7 @@ func (controller tagController) Update(c echo.Context) error {
 // @Failure 400 {object} support.HttpError
 // @Router /api/tags [delete]
 func (controller tagController) Delete(c echo.Context) error {
-	id := string(c.Param("id"))
+	id := string(c.Param("code"))
 	success, failure := controller.service.Delete(id)
 	if failure != nil {
 		return c.JSON(failure.Code(), failure.Message())

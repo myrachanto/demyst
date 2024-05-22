@@ -2,7 +2,7 @@ package category
 
 import (
 	httperrors "github.com/myrachanto/erroring"
-	"github.com/myrachanto/sports/src/support"
+	"github.com/myrachanto/estate/src/support"
 )
 
 var (
@@ -13,6 +13,7 @@ type CategoryServiceInterface interface {
 	Create(category *Category) (*Category, httperrors.HttpErr)
 	GetOne(code string) (category *Category, errors httperrors.HttpErr)
 	GetAll(search support.Paginator) (*Results, httperrors.HttpErr)
+	GetAll1(searcher support.Paginator) (*Results, httperrors.HttpErr)
 	Update(code string, category *Category) (string, httperrors.HttpErr)
 	Delete(code string) (string, httperrors.HttpErr)
 }
@@ -33,6 +34,11 @@ func (service *categoryService) Create(category *Category) (*Category, httperror
 
 func (service *categoryService) GetAll(search support.Paginator) (*Results, httperrors.HttpErr) {
 	return service.repo.GetAll(search)
+}
+
+func (service *categoryService) GetAll1(searcher support.Paginator) (*Results, httperrors.HttpErr) {
+	tags, err := service.repo.GetAll1(searcher)
+	return tags, err
 }
 func (service *categoryService) GetOne(code string) (*Category, httperrors.HttpErr) {
 	return service.repo.GetOne(code)

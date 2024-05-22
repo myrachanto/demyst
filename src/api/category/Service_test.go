@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/myrachanto/sports/src/support"
+	"github.com/myrachanto/estate/src/support"
 	"github.com/stretchr/testify/assert"
 )
 

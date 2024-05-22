@@ -7,8 +7,8 @@ import (
 	"time"
 
 	httperrors "github.com/myrachanto/erroring"
-	"github.com/myrachanto/sports/src/db"
-	"github.com/myrachanto/sports/src/support"
+	"github.com/myrachanto/estate/src/db"
+	"github.com/myrachanto/estate/src/support"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -77,6 +77,19 @@ func (r *pagerepository) GetOneByUrl(code string) (page *Page, errors httperrors
 	}
 	collection := db.Mongodb.Collection("page")
 	filter := bson.M{"name": code}
+	err := collection.FindOne(ctx, filter).Decode(&page)
+	if err != nil {
+		return nil, httperrors.NewBadRequestError(fmt.Sprintf("Could not find resource with this id, %d", err))
+	}
+	return page, nil
+}
+func (r *pagerepository) GetOneByUrl2(code string) (page *Page, errors httperrors.HttpErr) {
+	stringresults := httperrors.ValidStringNotEmpty(code)
+	if stringresults.Noerror() {
+		return nil, stringresults
+	}
+	collection := db.Mongodb.Collection("page")
+	filter := bson.M{"url": code}
 	err := collection.FindOne(ctx, filter).Decode(&page)
 	if err != nil {
 		return nil, httperrors.NewBadRequestError(fmt.Sprintf("Could not find resource with this id, %d", err))
@@ -161,6 +174,9 @@ func (r *pagerepository) Update(code string, page *Page) (string, httperrors.Htt
 	if page.Meta == "" {
 		page.Meta = ac.Meta
 	}
+	if page.Url == "" {
+		page.Url = ac.Url
+	}
 	if page.Content == "" {
 		page.Content = ac.Content
 	}
@@ -195,7 +211,7 @@ func (r pagerepository) Delete(id string) (string, httperrors.HttpErr) {
 		return "", stringresults
 	}
 	collection := db.Mongodb.Collection("page")
-
+	// fmt.Println("=====================asacaa deleting page", id)
 	filter := bson.M{"code": id}
 	ok, err := collection.DeleteOne(ctx, filter)
 	if ok == nil {

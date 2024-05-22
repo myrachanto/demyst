@@ -2,7 +2,7 @@ package users
 
 import (
 	httperrors "github.com/myrachanto/erroring"
-	"github.com/myrachanto/sports/src/support"
+	"github.com/myrachanto/estate/src/support"
 )
 
 var (
@@ -10,7 +10,7 @@ var (
 )
 
 type UserServiceInterface interface {
-	Create(user *User) (*User, httperrors.HttpErr)
+	Create(user *User) (*Auth, httperrors.HttpErr)
 	Login(user *LoginUser) (*Auth, httperrors.HttpErr)
 	Logout(token string) (string, httperrors.HttpErr)
 	GetOne(code string) (user *User, errors httperrors.HttpErr)
@@ -32,7 +32,7 @@ func NewUserService(repository UserrepoInterface) UserServiceInterface {
 		repository,
 	}
 }
-func (service *userService) Create(user *User) (*User, httperrors.HttpErr) {
+func (service *userService) Create(user *User) (*Auth, httperrors.HttpErr) {
 	return service.repo.Create(user)
 }
 

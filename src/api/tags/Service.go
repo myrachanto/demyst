@@ -2,7 +2,7 @@ package tags
 
 import (
 	httperrors "github.com/myrachanto/erroring"
-	"github.com/myrachanto/sports/src/support"
+	"github.com/myrachanto/estate/src/support"
 )
 
 var (
@@ -13,6 +13,7 @@ type TagServiceInterface interface {
 	Create(tag *Tag) (*Tag, httperrors.HttpErr)
 	GetOne(code string) (tag *Tag, errors httperrors.HttpErr)
 	GetAll(search support.Paginator) (*Results, httperrors.HttpErr)
+	GetAll1(searcher support.Paginator) (*Results, httperrors.HttpErr)
 	Update(code string, tag *Tag) (string, httperrors.HttpErr)
 	Delete(code string) (string, httperrors.HttpErr)
 }
@@ -33,6 +34,11 @@ func (service *tagService) Create(tag *Tag) (*Tag, httperrors.HttpErr) {
 
 func (service *tagService) GetAll(search support.Paginator) (*Results, httperrors.HttpErr) {
 	return service.repo.GetAll(search)
+}
+
+func (service *tagService) GetAll1(searcher support.Paginator) (*Results, httperrors.HttpErr) {
+	tags, err := service.repo.GetAll1(searcher)
+	return tags, err
 }
 func (service *tagService) GetOne(code string) (*Tag, httperrors.HttpErr) {
 	return service.repo.GetOne(code)

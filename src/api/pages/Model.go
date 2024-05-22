@@ -2,7 +2,7 @@ package pages
 
 import (
 	httperrors "github.com/myrachanto/erroring"
-	"github.com/myrachanto/sports/src/support"
+	"github.com/myrachanto/estate/src/support"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -10,6 +10,7 @@ type Page struct {
 	ID      primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Name    string             `json:"name,omitempty"`
 	Title   string             `json:"title,omitempty"`
+	Url     string             `json:"url,omitempty"`
 	Meta    string             `json:"meta,omitempty"`
 	Content string             `json:"content,omitempty"`
 	Code    string             `json:"code,omitempty"`

@@ -2,7 +2,7 @@ package tags
 
 import (
 	httperrors "github.com/myrachanto/erroring"
-	"github.com/myrachanto/sports/src/support"
+	"github.com/myrachanto/estate/src/support"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -16,10 +16,10 @@ type Tag struct {
 }
 
 type Results struct {
-	Data        []*Tag `json:"results"`
-	Total       int    `json:"total"`
-	Pages       int    `json:"pages"`
-	CurrentPage int    `json:"currentpage"`
+	Data        []Tag `json:"results"`
+	Total       int   `json:"total"`
+	Pages       int   `json:"pages"`
+	CurrentPage int   `json:"currentpage"`
 }
 
 var MessageResp struct {

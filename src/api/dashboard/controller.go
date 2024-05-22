@@ -14,6 +14,7 @@ var (
 type DashboardControllerInterface interface {
 	HomeCms(c echo.Context) error
 	Index(c echo.Context) error
+	Layout(c echo.Context) error
 }
 
 type dashboardController struct {
@@ -52,6 +53,22 @@ func (controller dashboardController) HomeCms(c echo.Context) error {
 // @Router /home [get]
 func (controller dashboardController) Index(c echo.Context) error {
 	category, problem := controller.service.Index()
+	if problem != nil {
+		return c.JSON(problem.Code(), problem.Message())
+	}
+	return c.JSON(http.StatusOK, category)
+}
+
+// @Summary  Get  Layout
+// @Description  Get  Layout
+// @Tags Layout
+// @Accept json
+// @Produce json
+// @Success 201 {object} Layout
+// @Failure 400 {object} support.HttpError
+// @Router /home [get]
+func (controller dashboardController) Layout(c echo.Context) error {
+	category, problem := controller.service.Layout()
 	if problem != nil {
 		return c.JSON(problem.Code(), problem.Message())
 	}

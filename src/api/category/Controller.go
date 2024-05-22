@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/myrachanto/sports/src/support"
+	"github.com/myrachanto/estate/src/support"
 )
 
 // categoryController ...
@@ -18,6 +19,7 @@ type CategoryControllerInterface interface {
 	Create(c echo.Context) error
 	GetOne(c echo.Context) error
 	GetAll(c echo.Context) error
+	GetAll1(c echo.Context) error
 	Update(c echo.Context) error
 	Delete(c echo.Context) error
 }
@@ -48,9 +50,11 @@ func (controller categoryController) Create(c echo.Context) error {
 
 	category := &Category{}
 	fmt.Println("--------------------create")
-	category.Name = c.FormValue("name")
+	category.Name = strings.TrimSpace(c.FormValue("name"))
 	category.Title = c.FormValue("title")
 	category.Description = c.FormValue("description")
+	category.Meta = c.FormValue("meta")
+	category.Content = c.FormValue("content")
 	_, err1 := controller.service.Create(category)
 	if err1 != nil {
 		return c.JSON(err1.Code(), err1.Message())
@@ -92,6 +96,36 @@ func (controller categoryController) GetAll(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, categorys)
 }
+func (controller categoryController) GetAll1(c echo.Context) error {
+
+	search := c.QueryParam("search")
+	orderby := c.QueryParam("orderby")
+	ps := c.QueryParam("pagesize")
+	pn := c.QueryParam("pagenumber")
+	page, err := strconv.Atoi(pn)
+	// fmt.Println("----------------------sdfgghh", ps)
+	if err != nil {
+		fmt.Println("Invalid pagesize")
+		page = 1
+	}
+	pagesize, err := strconv.Atoi(ps)
+	if err != nil {
+		fmt.Println("Invalid pagesize")
+		pagesize = 10
+	}
+	order, err := strconv.Atoi(c.QueryParam("order"))
+	if err != nil {
+		fmt.Println("Invalid pagesize")
+		order = 1
+	}
+	searcher := support.Paginator{Page: page, Pagesize: pagesize, Search: search, Orderby: orderby, Order: order}
+	// fmt.Println(">>>>>>>>>>>tag Bizname", Bizname)
+	tags, err3 := controller.service.GetAll1(searcher)
+	if err3 != nil {
+		return c.JSON(err3.Code(), err3.Message())
+	}
+	return c.JSON(http.StatusOK, tags)
+}
 
 // GetOne godoc
 // @Summary Get a category
@@ -124,9 +158,11 @@ func (controller categoryController) GetOne(c echo.Context) error {
 func (controller categoryController) Update(c echo.Context) error {
 
 	category := &Category{}
-	category.Name = c.FormValue("name")
+	category.Name = strings.TrimSpace(c.FormValue("name"))
 	category.Title = c.FormValue("title")
 	category.Description = c.FormValue("description")
+	category.Meta = c.FormValue("meta")
+	category.Content = c.FormValue("content")
 	code := c.Param("code")
 	_, err1 := controller.service.Update(code, category)
 	if err1 != nil {

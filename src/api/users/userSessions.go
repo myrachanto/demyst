@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/myrachanto/sports/src/db"
-	"github.com/myrachanto/sports/src/support"
 	httperrors "github.com/myrachanto/erroring"
+	"github.com/myrachanto/estate/src/db"
+	"github.com/myrachanto/estate/src/support"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )

@@ -7,9 +7,9 @@ import (
 	"time"
 
 	httperrors "github.com/myrachanto/erroring"
-	"github.com/myrachanto/sports/src/db"
-	"github.com/myrachanto/sports/src/pasetos"
-	"github.com/myrachanto/sports/src/support"
+	"github.com/myrachanto/estate/src/db"
+	"github.com/myrachanto/estate/src/pasetos"
+	"github.com/myrachanto/estate/src/support"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -42,7 +42,7 @@ type Key struct {
 // }
 
 type UserrepoInterface interface {
-	Create(user *User) (*User, httperrors.HttpErr)
+	Create(user *User) (*Auth, httperrors.HttpErr)
 	Login(auser *LoginUser) (*Auth, httperrors.HttpErr)
 	RenewAccessToken(renewAccesstoken string) (*Auth, httperrors.HttpErr)
 	Logout(token string) (string, httperrors.HttpErr)
@@ -63,7 +63,7 @@ func NewUserRepo() UserrepoInterface {
 	return &userrepository{}
 }
 
-func (r *userrepository) Create(user *User) (*User, httperrors.HttpErr) {
+func (r *userrepository) Create(user *User) (*Auth, httperrors.HttpErr) {
 
 	if err1 := user.Validate(); err1 != nil {
 		return nil, err1
@@ -107,7 +107,53 @@ func (r *userrepository) Create(user *User) (*User, httperrors.HttpErr) {
 		return nil, httperrors.NewBadRequestError(fmt.Sprintf("Create user Failed, %d", err))
 	}
 	user.ID = result1.InsertedID.(primitive.ObjectID)
-	return user, nil
+
+	maker, errs := pasetos.NewPasetoMaker()
+	if err != nil {
+		return nil, errs
+	}
+	tokencode, errs := Sessionsrepo.GeneTokencode(user.Usercode)
+	if errs != nil {
+		return nil, errs
+	}
+	renewtokencode, errs := Sessionsrepo.GeneSessioncode(user.Usercode)
+	if errs != nil {
+		return nil, errs
+	}
+	data := &pasetos.Data{
+		Code:     tokencode,
+		Usercode: user.Usercode,
+		Admin:    user.Admin,
+		Auditor:  user.Auditor,
+		Username: user.Username,
+		Email:    user.Email,
+	}
+	// fmt.Println("---------------------", data)
+	tokenString, payload, errs := maker.CreateToken(data, time.Hour*5)
+	if errs != nil {
+		return nil, errs
+	}
+	data.Code = renewtokencode
+	RefleshToken, refleshtok, errs := maker.CreateToken(data, time.Hour*24)
+	if errs != nil {
+		return nil, errs
+	}
+	sessiond, errs := Sessionsrepo.CreateSession(&Session{
+		Code: renewtokencode,
+		// TokenId:      tokencode,
+		Username:     user.Username,
+		Usercode:     user.Usercode,
+		RefleshToken: RefleshToken,
+		UserAgent:    user.UserAgent,
+		ClientIp:     "",
+		IsBlocked:    false,
+		ExpiresAt:    refleshtok.ExpiredAt,
+	})
+	if errs != nil {
+		return nil, errs
+	}
+	auths := &Auth{Usercode: user.Usercode, Picture: user.Picture, UserName: user.Username, Admin: user.Admin, Token: tokenString, RefleshToken: RefleshToken, SessionCode: sessiond.Code, TokenExpires: payload.ExpiredAt, RefleshTokenExpires: sessiond.ExpiresAt}
+	return auths, nil
 }
 
 func (r *userrepository) Login(user *LoginUser) (*Auth, httperrors.HttpErr) {

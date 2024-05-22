@@ -1,36 +1,54 @@
 package dashboard
 
 import (
-	"github.com/myrachanto/sports/src/api/news"
-	"github.com/myrachanto/sports/src/api/pages"
+	"github.com/myrachanto/estate/src/api/location"
+	"github.com/myrachanto/estate/src/api/majorcategory"
+	"github.com/myrachanto/estate/src/api/product"
+	"github.com/myrachanto/estate/src/api/seo"
+	subLocation "github.com/myrachanto/estate/src/api/sublocation"
 )
 
 type Dashboard struct {
-	News        []*news.News       `json:"news"`
-	All         Module             `json:"all"`
-	Trending    Module             `json:"trending"`
-	Exclusive   Module             `json:"exclusive"`
-	Featured    Module             `json:"featured"`
-	Chartdata   ChartData          `json:"chartdata"`
-	Sportcounts []*news.SportCount `json:"sportcount"`
-	Linechart   []*news.Weekly     `json:"linechart"`
+	Products     []*product.Product `json:"products"`
+	All          Modulo             `json:"all"`
+	Featured     Modulo             `json:"featured"`
+	Promoted     Modulo             `json:"trending"`
+	HotDeals     Modulo             `json:"exclusive"`
+	Chartdata    ChartData          `json:"chartdata"`
+	Distribution []product.Modular  `json:"distribution"`
+	Types        []product.Modular  `json:"types"`
+	Linechart    []*product.Weekly  `json:"linechart"`
+}
+
+type Modulo struct {
+	Name  string `json:"name"`
+	Total int    `json:"total"`
 }
 type Module struct {
 	Name  string `json:"name"`
 	Total int    `json:"total"`
 }
+type Module2 struct {
+	Name  string `json:"name"`
+	Image string `json:"image"`
+	Total int    `json:"total"`
+}
 type ChartData struct {
-	Trending  Module `json:"trending"`
-	Latest    Module `json:"latest"`
-	Exclusive Module `json:"exclusive"`
-	Featured  Module `json:"featured"`
-	All       Module `json:"all"`
+	Hotdeals Module `json:"exclusive"`
+	Latest   Module `json:"latest"`
+	Promoted Module `json:"trending"`
+	Featured Module `json:"featured"`
+	All      Module `json:"all"`
 }
 type Home struct {
-	All       []*news.News `json:"all,omitempty"`
-	Latest    []*news.News `json:"latest,omitempty"`
-	Trending  []*news.News `json:"trending,omitempty"`
-	Exclusive []*news.News `json:"exclusive,omitempty"`
-	Featured  []*news.News `json:"featured,omitempty"`
-	Seo       *pages.Page  `json:"seo,omitempty"`
+	Featured   []product.Product   `json:"featured"`
+	Promoted   []*product.Product  `json:"promoted"`
+	Properties []Module2           `json:"properties"`
+	Locations  []location.Location `json:"locations"`
+	Seo        *seo.Seo            `json:"seo"`
+}
+type Nav struct {
+	Locations     []location.Location           `json:"locations"`
+	Sublocation   []subLocation.SubLocation     `json:"sublocations"`
+	Majorcategory []majorcategory.Majorcategory `json:"majorcategories"`
 }

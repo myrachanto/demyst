@@ -7,8 +7,8 @@ import (
 	"time"
 
 	httperrors "github.com/myrachanto/erroring"
-	"github.com/myrachanto/sports/src/db"
-	"github.com/myrachanto/sports/src/support"
+	"github.com/myrachanto/estate/src/db"
+	"github.com/myrachanto/estate/src/support"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -25,6 +25,7 @@ type CategoryrepoInterface interface {
 	Create(category *Category) (*Category, httperrors.HttpErr)
 	GetOne(id string) (*Category, httperrors.HttpErr)
 	GetAll(support.Paginator) (*Results, httperrors.HttpErr)
+	GetAll1(search support.Paginator) (*Results, httperrors.HttpErr)
 	Update(code string, category *Category) (string, httperrors.HttpErr)
 	Delete(id string) (string, httperrors.HttpErr)
 	Count() (float64, httperrors.HttpErr)
@@ -75,7 +76,7 @@ func (r *categoryrepository) GetAll(search support.Paginator) (*Results, httperr
 	findOptions.SetSkip(int64(skipNum))
 	findOptions.SetSort(bson.D{{"name", -1}})
 	collection := db.Mongodb.Collection("category")
-	results := []*Category{}
+	results := []Category{}
 	fmt.Println(search)
 	if search.Search != "" {
 		// 	filter := bson.D{
@@ -120,6 +121,58 @@ func (r *categoryrepository) GetAll(search support.Paginator) (*Results, httperr
 	}
 
 }
+func (r *categoryrepository) GetAll1(search support.Paginator) (*Results, httperrors.HttpErr) {
+	categorys := []Category{}
+	findOptions := options.Find()
+	findOptions.SetLimit(int64(search.Pagesize))
+	skipNum := (search.Page - 1) * search.Pagesize
+	findOptions.SetSkip(int64(skipNum))
+	if search.Orderby == "name" {
+		findOptions.SetSort(bson.D{{"name", search.Order}})
+	}
+	if search.Orderby == "title" {
+		findOptions.SetSort(bson.D{{"title", search.Order}})
+	}
+	if search.Orderby == "" {
+		findOptions.SetSort(bson.D{{"name", 1}})
+	}
+
+	collection := db.Mongodb.Collection("category")
+	// fmt.Println("-------------------------getall major categories")
+	filter := bson.D{
+		{"$or", bson.A{
+			bson.D{{"name", primitive.Regex{Pattern: search.Search, Options: "i"}}},
+			bson.D{{"title", primitive.Regex{Pattern: search.Search, Options: "i"}}},
+			bson.D{{"description", primitive.Regex{Pattern: search.Search, Options: "i"}}},
+		}},
+	}
+	cur, err := collection.Find(ctx, filter, findOptions)
+	if err != nil {
+		return nil, httperrors.NewNotFoundError("no results found")
+	}
+	defer cur.Close(ctx)
+	for cur.Next(ctx) {
+		var category Category
+		err := cur.Decode(&category)
+		if err != nil {
+			return nil, httperrors.NewNotFoundError("Error while decoding results!")
+		}
+		categorys = append(categorys, category)
+	}
+	if err := cur.Err(); err != nil {
+		return nil, httperrors.NewNotFoundError("Error with cursor!")
+	}
+
+	count, _ := collection.CountDocuments(ctx, filter)
+	// fmt.Println("-------------------------getall major categories", majorcategorys)
+	return &Results{
+		Data:        categorys,
+		Total:       int(count),
+		Pages:       int(count) / int(search.Pagesize),
+		CurrentPage: search.Page,
+	}, nil
+
+}
 
 func (r *categoryrepository) Update(code string, category *Category) (string, httperrors.HttpErr) {
 	stringresults := httperrors.ValidStringNotEmpty(code)
@@ -145,6 +198,12 @@ func (r *categoryrepository) Update(code string, category *Category) (string, ht
 	}
 	if category.Description == "" {
 		category.Description = ac.Description
+	}
+	if category.Meta == "" {
+		category.Meta = ac.Meta
+	}
+	if category.Content == "" {
+		category.Content = ac.Content
 	}
 	update := bson.M{"$set": category}
 	_, errs := collection.UpdateOne(ctx, filter, update)

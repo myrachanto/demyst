@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	httperrors "github.com/myrachanto/erroring"
-	"github.com/myrachanto/sports/src/db"
-	"github.com/myrachanto/sports/src/support"
+	"github.com/myrachanto/estate/src/db"
+	"github.com/myrachanto/estate/src/support"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -25,10 +26,12 @@ type TagrepoInterface interface {
 	Create(tag *Tag) (*Tag, httperrors.HttpErr)
 	GetOne(id string) (*Tag, httperrors.HttpErr)
 	GetAll(support.Paginator) (*Results, httperrors.HttpErr)
+	GetAll1(search support.Paginator) (*Results, httperrors.HttpErr)
 	Update(code string, tag *Tag) (string, httperrors.HttpErr)
 	Delete(id string) (string, httperrors.HttpErr)
 	Count() (float64, httperrors.HttpErr)
 	GetOneByName(name string) (ac *Tag, errors httperrors.HttpErr)
+	GetOneByUrl(name string) (ac *Tag, errors httperrors.HttpErr)
 }
 type tagrepository struct{}
 
@@ -75,7 +78,7 @@ func (r *tagrepository) GetAll(search support.Paginator) (*Results, httperrors.H
 	findOptions.SetSkip(int64(skipNum))
 	findOptions.SetSort(bson.D{{"name", -1}})
 	collection := db.Mongodb.Collection("tag")
-	results := []*Tag{}
+	results := []Tag{}
 	fmt.Println(search)
 	if search.Search != "" {
 		// 	filter := bson.D{
@@ -121,6 +124,59 @@ func (r *tagrepository) GetAll(search support.Paginator) (*Results, httperrors.H
 
 }
 
+func (r *tagrepository) GetAll1(search support.Paginator) (*Results, httperrors.HttpErr) {
+	tags := []Tag{}
+	findOptions := options.Find()
+	findOptions.SetLimit(int64(search.Pagesize))
+	skipNum := (search.Page - 1) * search.Pagesize
+	findOptions.SetSkip(int64(skipNum))
+	if search.Orderby == "name" {
+		findOptions.SetSort(bson.D{{"name", search.Order}})
+	}
+	if search.Orderby == "title" {
+		findOptions.SetSort(bson.D{{"title", search.Order}})
+	}
+	if search.Orderby == "" {
+		findOptions.SetSort(bson.D{{"name", 1}})
+	}
+
+	collection := db.Mongodb.Collection("tag")
+	// fmt.Println("-------------------------getall major categories")
+	filter := bson.D{
+		{"$or", bson.A{
+			bson.D{{"name", primitive.Regex{Pattern: search.Search, Options: "i"}}},
+			bson.D{{"title", primitive.Regex{Pattern: search.Search, Options: "i"}}},
+			bson.D{{"description", primitive.Regex{Pattern: search.Search, Options: "i"}}},
+		}},
+	}
+	cur, err := collection.Find(ctx, filter, findOptions)
+	if err != nil {
+		return nil, httperrors.NewNotFoundError("no results found")
+	}
+	defer cur.Close(ctx)
+	for cur.Next(ctx) {
+		var tag Tag
+		err := cur.Decode(&tag)
+		if err != nil {
+			return nil, httperrors.NewNotFoundError("Error while decoding results!")
+		}
+		tags = append(tags, tag)
+	}
+	if err := cur.Err(); err != nil {
+		return nil, httperrors.NewNotFoundError("Error with cursor!")
+	}
+
+	count, _ := collection.CountDocuments(ctx, filter)
+	// fmt.Println("-------------------------getall major categories", majorcategorys)
+	return &Results{
+		Data:        tags,
+		Total:       int(count),
+		Pages:       int(count) / int(search.Pagesize),
+		CurrentPage: search.Page,
+	}, nil
+
+}
+
 func (r *tagrepository) Update(code string, tag *Tag) (string, httperrors.HttpErr) {
 	stringresults := httperrors.ValidStringNotEmpty(code)
 	if stringresults.Noerror() {
@@ -154,7 +210,7 @@ func (r *tagrepository) Update(code string, tag *Tag) (string, httperrors.HttpEr
 	return "successifully Updated!", nil
 }
 
-func (r *tagrepository) GetOneByName(name string) (ac *Tag, errors httperrors.HttpErr) {
+func (r *tagrepository) GetOneByUrl(name string) (ac *Tag, errors httperrors.HttpErr) {
 	stringresults := httperrors.ValidStringNotEmpty(name)
 	if stringresults.Noerror() {
 		return nil, stringresults
@@ -162,12 +218,30 @@ func (r *tagrepository) GetOneByName(name string) (ac *Tag, errors httperrors.Ht
 	collection := db.Mongodb.Collection("tag")
 	filter := bson.D{
 		{"$and", bson.A{
-			bson.D{{"name", primitive.Regex{Pattern: name, Options: "i"}}},
+			bson.D{{"url", primitive.Regex{Pattern: name, Options: "i"}}},
 		}},
 	}
 	err := collection.FindOne(ctx, filter).Decode(&ac)
 	if err != nil {
 		return nil, httperrors.NewBadRequestError(fmt.Sprintf("Could not find resource with this id, %d", err))
+	}
+	return ac, nil
+}
+func (r *tagrepository) GetOneByName(name string) (ac *Tag, errors httperrors.HttpErr) {
+	stringresults := httperrors.ValidStringNotEmpty(name)
+	if stringresults.Noerror() {
+		return nil, stringresults
+	}
+	trimmed := strings.TrimSpace(name)
+	collection := db.Mongodb.Collection("tag")
+	filter := bson.D{
+		{"$and", bson.A{
+			bson.D{{"name", trimmed}},
+		}},
+	}
+	err := collection.FindOne(ctx, filter).Decode(&ac)
+	if err != nil {
+		return nil, httperrors.NewBadRequestError(fmt.Sprintf("Could not find tag with this id, %d", err))
 	}
 	return ac, nil
 }

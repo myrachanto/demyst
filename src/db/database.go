@@ -42,5 +42,5 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	Mongodb = client.Database("sports")
+	Mongodb = client.Database("estate")
 }

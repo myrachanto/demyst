@@ -10,8 +10,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	httperrors "github.com/myrachanto/erroring"
+	"github.com/myrachanto/estate/src/support"
 	"github.com/myrachanto/imagery"
-	"github.com/myrachanto/sports/src/support"
 )
 
 // UserController ...
@@ -65,11 +65,11 @@ func (controller userController) Create(c echo.Context) error {
 	// user.Address = c.FormValue("address")
 	user.Email = c.FormValue("email")
 	user.Password = c.FormValue("password")
-	_, err1 := controller.service.Create(user)
+	auth, err1 := controller.service.Create(user)
 	if err1 != nil {
 		return c.JSON(err1.Code(), err1.Message())
 	}
-	return c.JSON(http.StatusCreated, "user created succesifully")
+	return c.JSON(http.StatusCreated, auth)
 }
 
 // Login godoc

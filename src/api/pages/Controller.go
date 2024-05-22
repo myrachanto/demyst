@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
-	"github.com/myrachanto/sports/src/support"
+	"github.com/myrachanto/estate/src/support"
 )
 
 // pageController ...
@@ -51,6 +51,7 @@ func (controller pageController) Create(c echo.Context) error {
 	page.Name = c.FormValue("name")
 	page.Title = c.FormValue("title")
 	page.Meta = c.FormValue("meta")
+	page.Url = c.FormValue("url")
 	page.Content = c.FormValue("content")
 	_, err1 := controller.service.Create(page)
 	if err1 != nil {
@@ -82,7 +83,7 @@ func (controller pageController) GetAll(c echo.Context) error {
 	pagesize, err := strconv.Atoi(ps)
 	if err != nil {
 		fmt.Println("Invalid pagesize")
-		pagesize = 10
+		pagesize = 100
 	}
 	searcher := support.Paginator{Page: page, Pagesize: pagesize, Search: search}
 	pages, err3 := controller.service.GetAll(searcher)
@@ -144,6 +145,7 @@ func (controller pageController) Update(c echo.Context) error {
 	page.Name = c.FormValue("name")
 	page.Title = c.FormValue("title")
 	page.Meta = c.FormValue("meta")
+	page.Url = c.FormValue("url")
 	page.Content = c.FormValue("content")
 	code := c.Param("code")
 	_, err1 := controller.service.Update(code, page)
@@ -163,7 +165,9 @@ func (controller pageController) Update(c echo.Context) error {
 // @Failure 400 {object} support.HttpError
 // @Router /api/pages [delete]
 func (controller pageController) Delete(c echo.Context) error {
-	id := string(c.Param("id"))
+	id := c.Param("code")
+
+	// fmt.Println("=====================asacaa deleting page controller", id)
 	success, failure := controller.service.Delete(id)
 	if failure != nil {
 		return c.JSON(failure.Code(), failure.Message())

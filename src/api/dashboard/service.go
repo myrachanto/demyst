@@ -11,6 +11,7 @@ var (
 type DashboardServiceInterface interface {
 	HomeCms() (*Dashboard, httperrors.HttpErr)
 	Index() (*Home, httperrors.HttpErr)
+	Layout() (*Nav, httperrors.HttpErr)
 }
 type dashboardService struct {
 	repo DashboardrepoInterface
@@ -29,5 +30,10 @@ func (service *dashboardService) HomeCms() (*Dashboard, httperrors.HttpErr) {
 func (service *dashboardService) Index() (*Home, httperrors.HttpErr) {
 
 	return service.repo.Index()
+
+}
+func (service *dashboardService) Layout() (*Nav, httperrors.HttpErr) {
+
+	return service.repo.Layout()
 
 }

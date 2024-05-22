@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/myrachanto/sports/src/pasetos"
+	"github.com/myrachanto/estate/src/pasetos"
 	"github.com/stretchr/testify/require"
 )
 

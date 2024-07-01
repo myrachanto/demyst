@@ -296,7 +296,7 @@ func (r *seorepository) GetOneByName(name string, options ...string) *Seo {
 	// filter := bson.M{"page": name}
 	err := collection.FindOne(ctx, filter).Decode(&results)
 	if err != nil {
-		results.Title = "eloi developers"
+		results.Title = "eloi"
 		results.Description = "eloi developers"
 		results.Meta = "eloi developers"
 	}
